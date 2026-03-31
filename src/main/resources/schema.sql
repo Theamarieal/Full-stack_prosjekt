@@ -34,3 +34,23 @@ CREATE TABLE IF NOT EXISTS checklist_items (
     FOREIGN KEY (completed_by) REFERENCES users(id),
     FOREIGN KEY (checklist_id) REFERENCES checklists(id)
 );
+
+CREATE TABLE IF NOT EXISTS equipment (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    min_temp DOUBLE NOT NULL,
+    max_temp DOUBLE NOT NULL,
+    organization_id BIGINT,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+);
+
+CREATE TABLE IF NOT EXISTS temperature_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    reading_value DOUBLE NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
+    is_deviation BOOLEAN DEFAULT FALSE,
+    equipment_id BIGINT,
+    logged_by BIGINT,
+    FOREIGN KEY (equipment_id) REFERENCES equipment(id),
+    FOREIGN KEY (logged_by) REFERENCES users(id)
+);
