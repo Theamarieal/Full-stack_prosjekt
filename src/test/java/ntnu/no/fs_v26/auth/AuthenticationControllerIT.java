@@ -97,7 +97,7 @@ class AuthenticationControllerIT {
                 .password("chef123")
                 .build();
 
-        mockMvc.perform(post("/api/v1/auth/authenticate")
+        mockMvc.perform(post("/api/v1/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(login)))
                 .andExpect(status().isOk())
