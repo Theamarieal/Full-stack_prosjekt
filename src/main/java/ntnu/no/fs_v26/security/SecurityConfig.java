@@ -24,9 +24,19 @@ public class SecurityConfig {
     http
         .csrf(AbstractHttpConfigurer::disable) // deactivate CSRF since we use JWT
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/v1/auth/**").permitAll() // open for register/login
-            .requestMatchers("/h2-console/**").permitAll() // open for H2-database (only dev)
-            .anyRequest().authenticated() // all other routes demand JWT
+            // OPEN ENDPOINTS (no login required)
+            .requestMatchers("/api/v1/auth/**").permitAll() 
+            .requestMatchers("/h2-console/**").permitAll()
+            
+            // Swagger/OpenAPI paths that need to be open:
+            .requestMatchers("/v3/api-docs/**").permitAll()
+            .requestMatchers("/v3/api-docs.yaml").permitAll()
+            .requestMatchers("/swagger-ui/**").permitAll()
+            .requestMatchers("/swagger-ui.html").permitAll()
+            .requestMatchers("/swagger-resources/**").permitAll()
+            
+            //PROTECTIVE ENDPOINTS
+            .anyRequest().authenticated() // everything else requires JWT
         )
         .sessionManagement(session -> session
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no server-side sessions
