@@ -54,3 +54,16 @@ CREATE TABLE IF NOT EXISTS temperature_logs (
     FOREIGN KEY (equipment_id) REFERENCES equipment(id),
     FOREIGN KEY (logged_by) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS deviations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    resolved_at TIMESTAMP,
+    reported_by BIGINT,
+    organization_id BIGINT,
+    FOREIGN KEY (reported_by) REFERENCES users(id),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+);
