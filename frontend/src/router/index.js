@@ -7,15 +7,23 @@ const router = createRouter({
     {
       path: '/login',
       name: 'login',
-      // since we haven't made LoginView.vue yet, we'll jsut put a placeholder:
-      component: { render: () => h('div', h('h1', 'Login Page Placeholder')) }
+      component: () => import('../views/LoginView.vue'),
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
     },
     {
       path: '/',
       name: 'dashboard',
-      // same for Dashboard:
-      component: { render: () => h('div', h('h1', 'Dashboard Placeholder')) },
-      meta: { requiresAuth: true }
+      component: () => import('../views/DashboardView.vue'),
+      meta: { requiresAuth: true },
+    },
+    // for later if we want a specific dashboard path pointing to the same place
+    {
+      path: '/dashboard',
+      redirect: '/'
     }
   ],
 })
@@ -23,13 +31,16 @@ const router = createRouter({
 // navigation-guard
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  
+
   // check if route demands login trhough meta-field
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   if (requiresAuth && !authStore.isLoggedIn) {
     // not logged in? send to login!
     next('/login')
+  } else if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
+    // already logged in, but trying to see login/register -> send to dashboard
+    next('/')
   } else {
     // logged in or public site? go ahead!
     next()
@@ -37,5 +48,3 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
-
-import { h } from 'vue'
