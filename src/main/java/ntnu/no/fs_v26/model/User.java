@@ -37,7 +37,8 @@ public class User implements UserDetails {
   private Role role;
 
   @ManyToOne
-  @JoinColumn(name = "organization_id")
+  @JoinColumn(name = "organization_id", nullable = true) // make this true now
+  @com.fasterxml.jackson.annotation.JsonIgnore // stops infinite loop
   private Organization organization;
 
   @Column(name = "created_at")

@@ -5,13 +5,26 @@
 </template>
 
 <script setup>
-// trenger ikke logikk nå, bare tester
+// no logic needed here, routing is handled by vue-router
 </script>
 
 <style>
-/* enkel styling */
-#app {
+/* global reset! just keeps pages from inheriting unwanted padding/margin */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
   font-family: Arial, sans-serif;
-  padding: 20px;
+  background-color: #f7f6f2;
+  color: #2c2c2a;
+}
+
+#app {
+  min-height: 100vh;
 }
 </style>
