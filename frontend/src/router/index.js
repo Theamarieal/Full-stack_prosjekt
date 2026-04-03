@@ -20,11 +20,26 @@ const router = createRouter({
       component: () => import('../views/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
+    /**
+     * Route definition for the alcohol compliance module.
+     *
+     * <p>This view is available to authenticated users with the roles
+     * EMPLOYEE, MANAGER, or ADMIN.
+     */
+    {
+      path: '/alcohol',
+      name: 'alcohol',
+      component: () => import('@/views/AlcoholView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
+    },
     // for later if we want a specific dashboard path pointing to the same place
     {
       path: '/dashboard',
-      redirect: '/'
-    }
+      redirect: '/',
+    },
   ],
 })
 

@@ -67,3 +67,19 @@ CREATE TABLE IF NOT EXISTS deviations (
     FOREIGN KEY (reported_by) REFERENCES users(id),
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
 );
+
+CREATE TABLE IF NOT EXISTS alcohol_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    notes VARCHAR(1000),
+    recorded_at TIMESTAMP NOT NULL,
+    shift_date DATE NOT NULL,
+    guest_age INT,
+    alcohol_percentage DOUBLE,
+    id_checked BOOLEAN,
+    service_denied BOOLEAN,
+    recorded_by BIGINT NOT NULL,
+    organization_id BIGINT NOT NULL,
+    FOREIGN KEY (recorded_by) REFERENCES users(id),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+);
