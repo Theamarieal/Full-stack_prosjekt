@@ -20,6 +20,16 @@ const router = createRouter({
       component: () => import('../views/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
+
+    {
+      path: '/checklists',
+      name: 'checklists',
+      component: () => import('../views/ChecklistView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
+    },
     /**
      * Route definition for the alcohol compliance module.
      *
