@@ -60,13 +60,14 @@ CREATE TABLE IF NOT EXISTS deviations (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     status VARCHAR(50) NOT NULL,
+    module VARCHAR(20),
     created_at TIMESTAMP NOT NULL,
     resolved_at TIMESTAMP,
     reported_by BIGINT,
     organization_id BIGINT,
     FOREIGN KEY (reported_by) REFERENCES users(id),
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS alcohol_logs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

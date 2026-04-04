@@ -21,6 +21,9 @@ public class Deviation {
     @Enumerated(EnumType.STRING)
     private DeviationStatus status;
 
+    @Enumerated(EnumType.STRING)
+    private DeviationModule module;
+
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
 

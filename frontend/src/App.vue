@@ -1,15 +1,34 @@
 <template>
   <div id="app">
+    <nav class="global-nav" v-if="authStore.isLoggedIn">
+      <span class="nav-logo">Checkd</span>
+      <div class="nav-links">
+        <a @click="router.push('/')">Dashboard</a>
+        <a @click="router.push('/checklists')">Checklists</a>
+        <a @click="router.push('/temperature')">Temperature</a>
+        <a @click="router.push('/alcohol')">Alcohol</a>
+        <a @click="router.push('/deviations')">Deviations</a>
+      </div>
+      <button @click="handleLogout" class="logout-btn">Log out</button>
+    </nav>
     <router-view />
   </div>
 </template>
 
 <script setup>
-// no logic needed here, routing is handled by vue-router
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+function handleLogout() {
+  authStore.logout()
+  router.push('/login')
+}
 </script>
 
 <style>
-/* global reset! just keeps pages from inheriting unwanted padding/margin */
 *,
 *::before,
 *::after {
@@ -26,5 +45,48 @@ body {
 
 #app {
   min-height: 100vh;
+}
+
+.global-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #2c3e50;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-logo {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+}
+
+.nav-links a {
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.nav-links a:hover {
+  opacity: 1;
+}
+
+.logout-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 </style>
