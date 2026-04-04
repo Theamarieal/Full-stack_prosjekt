@@ -1,5 +1,6 @@
 package ntnu.no.fs_v26.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -25,5 +26,6 @@ public class ChecklistItem {
 
     @ManyToOne
     @JoinColumn(name = "checklist_id")
+    @JsonIgnore
     private Checklist checklist;
 }
