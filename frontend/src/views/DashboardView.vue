@@ -13,16 +13,6 @@
         <section class="module-section">
           <h2>IK-Mat</h2>
           <div class="stats-grid">
-            <div class="stat-card clickable-card" @click="router.push('/checklists')">
-              <h3>Checklists</h3>
-              <p v-if="matStats.total === 0">No checklists found.</p>
-              <p v-else>
-                <span class="stat-number">{{ matStats.completed }}</span> / {{ matStats.total }} completed
-              </p>
-              <p v-if="matStats.remaining > 0" class="warning-text">{{ matStats.remaining }} tasks remaining ⚠️</p>
-              <p v-else-if="matStats.total > 0" class="ok-text">All done ✓</p>
-            </div>
-
             <div class="stat-card clickable-card" @click="router.push('/temperature')">
               <h3>Temperature</h3>
               <p>Last measurements from your fridges and freezers.</p>
@@ -31,10 +21,20 @@
             <div class="stat-card clickable-card" @click="router.push('/deviations')">
               <h3>Deviations</h3>
               <div class="deviation-header">
-                <span v-if="openDeviations > 0" class="badge">{{ openDeviations }}</span>
+                <span v-if="matDeviations > 0" class="badge">{{ matDeviations }}</span>
               </div>
-              <p v-if="openDeviations > 0" class="warning-text">Open deviations</p>
-              <p v-else class="ok-text">No open deviations</p>
+              <p v-if="matDeviations > 0" class="warning-text">Open deviations</p>
+              <p v-else class="ok-text">No open deviations ✓</p>
+            </div>
+
+            <div class="stat-card clickable-card" @click="router.push('/checklists')">
+              <h3>Checklists</h3>
+              <p v-if="matStats.total === 0">No checklists found.</p>
+              <p v-else>
+                <span class="stat-number">{{ matStats.completed }}</span> / {{ matStats.total }} completed
+              </p>
+              <p v-if="matStats.remaining > 0" class="warning-text">{{ matStats.remaining }} tasks remaining ⚠️</p>
+              <p v-else-if="matStats.total > 0" class="ok-text">All done ✓</p>
             </div>
           </div>
         </section>
@@ -47,6 +47,15 @@
               <p>Register age checks, serving times, and current shift history.</p>
               <p v-if="alcoholStatus === false" class="warning-text">No alcohol registration for today ⚠️</p>
               <p v-else-if="alcoholStatus === true" class="ok-text">OK ✓</p>
+            </div>
+
+            <div class="stat-card clickable-card" @click="router.push('/deviations')">
+              <h3>Deviations</h3>
+              <div class="deviation-header">
+                <span v-if="alcoholDeviations > 0" class="badge">{{ alcoholDeviations }}</span>
+              </div>
+              <p v-if="alcoholDeviations > 0" class="warning-text">Open deviations</p>
+              <p v-else class="ok-text">No open deviations ✓</p>
             </div>
 
             <div class="stat-card clickable-card" @click="router.push('/checklists')">
@@ -77,7 +86,15 @@ const authStore = useAuthStore()
 const router = useRouter()
 const alcoholStatus = ref(null)
 const checklists = ref([])
-const openDeviations = ref(0)
+const deviations = ref([])
+
+const matDeviations = computed(() =>
+  deviations.value.filter(d => d.status === 'OPEN' && d.module === 'IK_MAT').length
+)
+
+const alcoholDeviations = computed(() =>
+  deviations.value.filter(d => d.status === 'OPEN' && d.module === 'IK_ALKOHOL').length
+)
 
 const matChecklists = computed(() =>
   checklists.value.filter(c => c.module !== 'BAR')
@@ -111,8 +128,7 @@ onMounted(async () => {
 
   try {
     const res = await deviationApi.getAll()
-    const deviations = Array.isArray(res.data) ? res.data : []
-    openDeviations.value = deviations.filter(d => d.status === 'OPEN').length
+    deviations.value = Array.isArray(res.data) ? res.data : []
   } catch (e) {
     console.error('Failed to load deviations', e)
   }
@@ -192,7 +208,6 @@ onMounted(async () => {
   justify-content: flex-end;
   margin-bottom: 8px;
 }
-
 .badge {
   background: #dc2626;
   color: white;
