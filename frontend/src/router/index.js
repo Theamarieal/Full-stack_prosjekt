@@ -45,6 +45,15 @@ const router = createRouter({
         roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
       },
     },
+    {
+      path: '/deviations/new',
+      name: 'deviation-new',
+      component: () => import('../views/DeviationNewView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
+    },
     // for later if we want a specific dashboard path pointing to the same place
     {
       path: '/dashboard',
