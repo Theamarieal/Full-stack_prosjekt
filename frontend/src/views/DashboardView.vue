@@ -18,7 +18,7 @@
               <p>Last measurements from your fridges and freezers.</p>
             </div>
 
-            <div class="stat-card clickable-card" @click="router.push('/deviations')">
+            <div class="stat-card clickable-card" @click="router.push('/deviations?module=IK_MAT')">
               <h3>Deviations</h3>
               <div class="deviation-header">
                 <span v-if="matDeviations > 0" class="badge">{{ matDeviations }}</span>
@@ -49,7 +49,7 @@
               <p v-else-if="alcoholStatus === true" class="ok-text">OK ✓</p>
             </div>
 
-            <div class="stat-card clickable-card" @click="router.push('/deviations')">
+            <div class="stat-card clickable-card" @click="router.push('/deviations?module=IK_ALKOHOL')">
               <h3>Deviations</h3>
               <div class="deviation-header">
                 <span v-if="alcoholDeviations > 0" class="badge">{{ alcoholDeviations }}</span>
