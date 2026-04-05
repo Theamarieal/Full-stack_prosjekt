@@ -9,7 +9,10 @@
         <a @click="router.push('/alcohol')">Alcohol</a>
         <a @click="router.push('/deviations')">Deviations</a>
       </div>
-      <button @click="handleLogout" class="logout-btn">Log out</button>
+      <div class="nav-right">
+        <span class="nav-user">{{ authStore.user?.email }} ({{ authStore.user?.role }})</span>
+        <button @click="handleLogout" class="logout-btn">Log out</button>
+      </div>
     </nav>
     <router-view />
   </div>
@@ -79,6 +82,17 @@ body {
 
 .nav-links a:hover {
   opacity: 1;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-user {
+  font-size: 0.85rem;
+  opacity: 0.75;
 }
 
 .logout-btn {

@@ -46,6 +46,15 @@ const router = createRouter({
       },
     },
     {
+      path: '/deviations',
+      name: 'deviations',
+      component: () => import('../views/DeviationListView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
+    },
+    {
       path: '/deviations/new',
       name: 'deviation-new',
       component: () => import('../views/DeviationNewView.vue'),

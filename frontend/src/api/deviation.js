@@ -6,5 +6,8 @@ export default {
   },
   create(deviation) {
     return axios.post('/deviations', deviation)
+  },
+  updateStatus(id, status) {
+    return axios.patch(`/deviations/${id}/status`, null, { params: { status } })
   }
 }
