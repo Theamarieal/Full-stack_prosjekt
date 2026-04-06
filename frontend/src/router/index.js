@@ -1,9 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import TemperatureView from '@/views/TemperatureView.vue'
+import TemperatureHistoryView from '@/views/TemperatureHistoryView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/temperature',
+      name: 'temperature',
+      component: TemperatureView,
+    },
+    {
+      path: '/temperature-history',
+      name: 'temperature-history',
+      component: TemperatureHistoryView,
+    },
     {
       path: '/login',
       name: 'login',

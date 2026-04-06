@@ -123,20 +123,6 @@
           </div>
         </div>
 
-        <div v-if="form.type === 'INCIDENT'" class="form-group full-width">
-          <label for="notes">Incident notes</label>
-          <textarea
-            id="notes"
-            v-model="form.notes"
-            rows="5"
-            placeholder="Describe the incident clearly."
-          />
-        </div>
-
-        <p v-if="fieldErrors.notes" class="field-error">
-          {{ fieldErrors.notes }}
-        </p>
-
         <div v-if="requiresDenialNotes()" class="form-group full-width">
           <label for="denialNotes">Reason for denied service</label>
           <textarea
