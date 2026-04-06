@@ -8,7 +8,9 @@
       <p>Register temperature readings for your equipment.</p>
     </div>
 
-    <div class="temperature-grid">
+    <LoadingSpinner v-if="initialLoading" message="Loading equipment..." />
+
+    <div v-else class="temperature-grid">
       <section class="card form-card">
         <h2>New Reading</h2>
 
@@ -72,28 +74,28 @@
         <div class="table-wrapper">
           <table>
             <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Equipment</th>
-                <th>Value</th>
-                <th>Status</th>
-              </tr>
+            <tr>
+              <th>Timestamp</th>
+              <th>Equipment</th>
+              <th>Value</th>
+              <th>Status</th>
+            </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="log in latestLogs"
-                :key="log.id"
-                :class="{ 'deviation-row': isLogDeviation(log) }"
-              >
-                <td>{{ formatDate(log.timestamp) }}</td>
-                <td>{{ log.equipment?.name || 'Unknown equipment' }}</td>
-                <td>{{ log.value }} °C</td>
-                <td>{{ isLogDeviation(log) ? 'Deviation' : 'OK' }}</td>
-              </tr>
+            <tr
+              v-for="log in latestLogs"
+              :key="log.id"
+              :class="{ 'deviation-row': isLogDeviation(log) }"
+            >
+              <td>{{ formatDate(log.timestamp) }}</td>
+              <td>{{ log.equipment?.name || 'Unknown equipment' }}</td>
+              <td>{{ log.value }} °C</td>
+              <td>{{ isLogDeviation(log) ? 'Deviation' : 'OK' }}</td>
+            </tr>
 
-              <tr v-if="latestLogs.length === 0">
-                <td colspan="4">No temperature readings found.</td>
-              </tr>
+            <tr v-if="latestLogs.length === 0">
+              <td colspan="4">No temperature readings found.</td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -107,6 +109,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import temperatureApi from '@/api/temperature'
 import equipmentApi from '@/api/equipment'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter()
 
@@ -116,6 +119,7 @@ const latestLogs = ref([])
 const selectedEquipmentId = ref('')
 const temperatureValue = ref(null)
 
+const initialLoading = ref(true)
 const loading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -146,7 +150,6 @@ function formatDate(dateTime) {
 async function fetchEquipment() {
   try {
     const response = await equipmentApi.getAllEquipment()
-    console.log('Equipment response:', response.data)
     equipmentList.value = response.data || []
   } catch (error) {
     console.error('Failed to load equipment:', error)
@@ -224,8 +227,8 @@ function goToHistory() {
 }
 
 onMounted(async () => {
-  await fetchEquipment()
-  await fetchLatestLogs()
+  await Promise.all([fetchEquipment(), fetchLatestLogs()])
+  initialLoading.value = false
 })
 </script>
 

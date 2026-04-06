@@ -24,8 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-      String path = request.getRequestURI();
-      return path.contains("/api/v1/auth");
+    String path = request.getRequestURI();
+    return path.contains("/api/v1/auth");
   }
 
   @Override
@@ -43,8 +43,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       return;
     }
 
-    jwt = authHeader.substring(7);
-    userEmail = jwtService.extractUsername(jwt);
+    try {
+      jwt = authHeader.substring(7);
+      userEmail = jwtService.extractUsername(jwt);
+    } catch (Exception e) {
+      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+      return;
+    }
 
     if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
       UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
