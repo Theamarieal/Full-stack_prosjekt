@@ -67,6 +67,12 @@ const router = createRouter({
       },
     },
     {
+      path: '/manage-checklists',
+      name: 'manage-checklists',
+      component: () => import('../views/ManageChecklistsView.vue'),
+      meta: { requiresAuth: true, role: 'MANAGER' }
+    },
+    {
       path: '/deviations/new',
       name: 'deviation-new',
       component: () => import('../views/DeviationNewView.vue'),

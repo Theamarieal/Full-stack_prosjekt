@@ -45,4 +45,12 @@ public class ChecklistController {
         checklistService.completeItem(itemId, user);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Delete a checklist (Manager/Admin only)")
+    public ResponseEntity<Void> delete(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        checklistService.deleteChecklist(id, user);
+        return ResponseEntity.noContent().build();
+    }
 }

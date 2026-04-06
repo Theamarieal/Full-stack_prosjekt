@@ -48,7 +48,21 @@ public class ChecklistService {
                 .organization(user.getOrganization())
                 .build();
 
-        return checklistRepository.save(checklist);
+        Checklist savedChecklist = checklistRepository.save(checklist);
+
+        // Lagre punktene hvis de finnes i requesten
+        if (request.getItems() != null) {
+            request.getItems().forEach(itemTitle -> {
+                ChecklistItem item = ChecklistItem.builder()
+                        .description(itemTitle)
+                        .checklist(savedChecklist)
+                        .completed(false)
+                        .build();
+                itemRepository.save(item);
+            });
+        }
+
+        return savedChecklist;
     }
 
     /**
@@ -74,5 +88,16 @@ public class ChecklistService {
         item.setCompletedAt(LocalDateTime.now());
         item.setCompletedBy(user);
         itemRepository.save(item);
+    }
+
+    public void deleteChecklist(Long id, User user) {
+        Checklist checklist = checklistRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Checklist not found"));
+                
+        if (!checklist.getOrganization().getId().equals(user.getOrganization().getId())) {
+            throw new IllegalArgumentException("Access denied: You can only delete checklists from your own organization");
+        }
+        
+        checklistRepository.delete(checklist);
     }
 }
