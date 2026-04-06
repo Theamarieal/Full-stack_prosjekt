@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import ntnu.no.fs_v26.model.Frequency;
 import ntnu.no.fs_v26.model.ModuleType;
+import java.util.List;
 
 /**
  * Request body used when creating a new checklist.
@@ -23,6 +24,11 @@ public class ChecklistRequest {
     private Frequency frequency;
 
     private ModuleType module;
+
+    private List<String> items;
+
+    public List<String> getItems() { return items; }
+    public void setItems(List<String> items) { this.items = items; }
 
     public String getTitle() {
         return title;
