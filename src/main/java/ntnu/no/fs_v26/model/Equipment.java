@@ -1,5 +1,6 @@
 package ntnu.no.fs_v26.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,15 +11,17 @@ import lombok.*;
 @Entity
 @Table(name = "equipment")
 public class Equipment {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name; // f.eks. "Fridge fish"
-    private double minTemp; // f.eks. 0.0
-    private double maxTemp; // f.eks. 4.0
+    private String name;
+    private double minTemp;
+    private double maxTemp;
 
     @ManyToOne
     @JoinColumn(name = "organization_id")
+    @JsonIgnoreProperties({ "users" })
     private Organization organization;
 }
