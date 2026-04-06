@@ -8,7 +8,16 @@
         <a @click="router.push('/temperature')">Temperature</a>
         <a @click="router.push('/alcohol')">Alcohol</a>
         <a @click="router.push('/deviations')">Deviations</a>
+        
+        <a 
+          v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'" 
+          @click="router.push('/manage-checklists')"
+          style="color: #f1c40f; font-weight: bold;"
+        >
+          Manage Checklists
+        </a>
       </div>
+      
       <div class="nav-right">
         <span class="nav-user">{{ authStore.user?.email }} ({{ authStore.user?.role }})</span>
         <button @click="handleLogout" class="logout-btn">Log out</button>
