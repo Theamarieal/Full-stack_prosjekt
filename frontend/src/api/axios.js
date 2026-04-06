@@ -18,15 +18,21 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-//response interceptor for error handling
+// response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      sessionStorage.removeItem('token');
-      window.location.href = '/login';
+      const token = sessionStorage.getItem('token');
+      if (token) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        window.location.replace('http://localhost:5173/login');
+        return new Promise(() => {});
+      }
     }
     return Promise.reject(error);
-  })
+  }
+);
 
 export default api;
