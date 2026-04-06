@@ -2,8 +2,11 @@ package ntnu.no.fs_v26.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import ntnu.no.fs_v26.model.*;
+import ntnu.no.fs_v26.model.Deviation;
+import ntnu.no.fs_v26.model.DeviationStatus;
+import ntnu.no.fs_v26.model.User;
 import ntnu.no.fs_v26.service.DeviationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,8 +31,10 @@ public class DeviationController {
 
     @PostMapping
     @Operation(summary = "Report a new deviation")
-    public ResponseEntity<Deviation> create(@RequestBody Deviation deviation, @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(service.reportDeviation(deviation, user));
+    public ResponseEntity<Deviation> create(
+            @Valid @RequestBody DeviationRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(service.reportDeviation(request, user));
     }
 
     @PatchMapping("/{id}/status")
