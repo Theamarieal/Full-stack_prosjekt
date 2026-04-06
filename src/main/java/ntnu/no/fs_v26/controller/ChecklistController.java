@@ -2,6 +2,7 @@ package ntnu.no.fs_v26.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ntnu.no.fs_v26.model.Checklist;
 import ntnu.no.fs_v26.model.User;
@@ -30,13 +31,17 @@ public class ChecklistController {
     @PostMapping
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Create a new checklist (Manager/Admin only)")
-    public ResponseEntity<Checklist> create(@RequestBody Checklist checklist, @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(checklistService.createChecklist(checklist, user));
+    public ResponseEntity<Checklist> create(
+            @Valid @RequestBody ChecklistRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(checklistService.createChecklist(request, user));
     }
 
     @PatchMapping("/{id}/items/{itemId}/complete")
     @Operation(summary = "Mark a checklist item as completed")
-    public ResponseEntity<Void> completeItem(@PathVariable Long itemId, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Void> completeItem(
+            @PathVariable Long itemId,
+            @AuthenticationPrincipal User user) {
         checklistService.completeItem(itemId, user);
         return ResponseEntity.ok().build();
     }
