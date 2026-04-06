@@ -1,15 +1,19 @@
 package ntnu.no.fs_v26.service;
 
 import lombok.RequiredArgsConstructor;
-import ntnu.no.fs_v26.model.*;
+import ntnu.no.fs_v26.model.Deviation;
+import ntnu.no.fs_v26.model.DeviationStatus;
+import ntnu.no.fs_v26.model.User;
 import ntnu.no.fs_v26.repository.DeviationRepository;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class DeviationService {
+
     private final DeviationRepository repository;
 
     public List<Deviation> getDeviations(User user) {
@@ -28,15 +32,18 @@ public class DeviationService {
         Deviation deviation = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Deviation not found"));
 
-        // securitycheck: does the deviation belog to the same org?
         if (!deviation.getOrganization().getId().equals(user.getOrganization().getId())) {
             throw new RuntimeException("Unauthorized");
         }
 
         deviation.setStatus(newStatus);
+
         if (newStatus == DeviationStatus.RESOLVED) {
             deviation.setResolvedAt(LocalDateTime.now());
+        } else {
+            deviation.setResolvedAt(null);
         }
+
         return repository.save(deviation);
     }
 }

@@ -7,24 +7,14 @@
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label>E-mail</label>
-          <input 
-            v-model="email" 
-            type="email" 
-            placeholder="name@bedrift.no" 
-            required 
-          />
+          <input v-model="email" type="email" placeholder="name@bedrift.no" required />
         </div>
 
         <div class="form-group">
           <label>Password</label>
-          <input 
-            v-model="password" 
-            type="password" 
-            placeholder="At least 8 characters" 
-            required 
-          />
+          <input v-model="password" type="password" placeholder="At least 8 characters" required />
         </div>
-        
+
         <div class="form-group">
           <label>Your role</label>
           <select v-model="role">
@@ -39,7 +29,7 @@
       </form>
 
       <p v-if="error" class="error-message">{{ error }}</p>
-      
+
       <div class="footer-links">
         <span>Do you already have a user? </span>
         <router-link to="/login">Log in here</router-link>
@@ -49,45 +39,37 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
-const auth = useAuthStore();
-const router = useRouter();
+const auth = useAuthStore()
+const router = useRouter()
 
-const email = ref('');
-const password = ref('');
-const role = ref('EMPLOYEE');
-const error = ref('');
-const loading = ref(false);
+const email = ref('')
+const password = ref('')
+const role = ref('EMPLOYEE')
+const error = ref('')
+const loading = ref(false)
 
 const handleRegister = async () => {
-  error.value = '';
-  loading.value = true;
+  error.value = ''
+  loading.value = true
 
   try {
-    // IMPORTANT: we send arguments each by each like they're defined in auth.js
-    // email, password, role, organizationId (we use 1 as standard)
-    const success = await auth.register(
-      email.value, 
-      password.value, 
-      role.value, 
-      1
-    );
+    const result = await auth.register(email.value, password.value, role.value, 1)
 
-    if (success) {
-      // send user to dashboard if signup went well
-      router.push('/dashboard');
+    if (result.success) {
+      router.push('/')
     } else {
-      error.value = "Something went wrong. Try again.";
+      error.value = result.message || 'Something went wrong. Try again.'
     }
   } catch (err) {
-    error.value = "Could not create user. Maybe e-mail is already in use?";
+    error.value = 'Could not create user.'
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 </script>
 
 <style scoped>
@@ -102,7 +84,7 @@ const handleRegister = async () => {
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
 }
@@ -130,7 +112,8 @@ label {
   font-size: 0.9rem;
 }
 
-input, select {
+input,
+select {
   padding: 0.6rem;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -140,7 +123,7 @@ input, select {
 button {
   width: 100%;
   padding: 0.8rem;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -169,7 +152,7 @@ button:disabled {
 }
 
 a {
-  color: #4CAF50;
+  color: #4caf50;
   text-decoration: none;
   font-weight: bold;
 }

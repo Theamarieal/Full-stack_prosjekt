@@ -27,6 +27,12 @@ const router = createRouter({
       component: () => import('../views/RegisterView.vue'),
     },
     {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('@/views/ReportView.vue'),
+      meta: { requiresAuth: true, roles: ['MANAGER', 'ADMIN'] },
+    },
+    {
       path: '/',
       name: 'dashboard',
       component: () => import('../views/DashboardView.vue'),
@@ -83,23 +89,18 @@ const router = createRouter({
   ],
 })
 
-// navigation-guard
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
-  // check if route demands login trhough meta-field
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-
-  if (requiresAuth && !authStore.isLoggedIn) {
-    // not logged in? send to login!
-    next('/login')
-  } else if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
-    // already logged in, but trying to see login/register -> send to dashboard
-    next('/')
-  } else {
-    // logged in or public site? go ahead!
-    next()
+  if (to.meta.requiresAuth && !authStore.token) {
+    return next('/login')
   }
+
+  if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
+    return next('/')
+  }
+
+  next()
 })
 
 export default router

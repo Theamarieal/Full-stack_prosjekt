@@ -12,11 +12,19 @@ public interface TemperatureLogRepository extends JpaRepository<TemperatureLog, 
 
     List<TemperatureLog> findAllByEquipmentOrganizationId(Long organizationId);
 
+    List<TemperatureLog> findAllByEquipmentOrganizationIdAndTimestampBetween(
+            Long organizationId,
+            LocalDateTime from,
+            LocalDateTime to);
+
     List<TemperatureLog> findTop10ByEquipmentOrganizationIdOrderByTimestampDesc(Long organizationId);
 
     List<TemperatureLog> findTop5ByEquipmentOrganizationIdAndIsDeviationTrueOrderByTimestampDesc(Long organizationId);
 
-    long countByEquipmentOrganizationIdAndTimestampBetween(Long organizationId, LocalDateTime start, LocalDateTime end);
+    long countByEquipmentOrganizationIdAndTimestampBetween(
+            Long organizationId,
+            LocalDateTime start,
+            LocalDateTime end);
 
     long countByEquipmentOrganizationIdAndIsDeviationTrueAndTimestampBetween(
             Long organizationId,

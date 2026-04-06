@@ -10,6 +10,25 @@
         </p>
       </div>
 
+      <div v-if="canViewReports" class="manager-tools-section">
+        <h2>Management</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card clickable-card" @click="goToReports">
+            <div class="card-header">
+              <h3>Reports</h3>
+              <span class="card-link">Open</span>
+            </div>
+
+            <p class="card-description">
+              Generate compliance reports for deviations, temperature logs, and alcohol logs.
+            </p>
+
+            <p class="ok-text">Available to managers and administrators</p>
+          </div>
+        </div>
+      </div>
+
       <div class="sections-grid">
         <section class="module-section">
           <h2>IK-Mat</h2>
@@ -179,6 +198,10 @@ const hasTemperatureDeviations = computed(() => {
   return temperatureSummary.value && temperatureSummary.value.deviationsToday > 0
 })
 
+const canViewReports = computed(() => {
+  return ['MANAGER', 'ADMIN'].includes(authStore.user?.role)
+})
+
 const matDeviations = computed(
   () => deviations.value.filter((d) => d.status === 'OPEN' && d.module === 'IK_MAT').length,
 )
@@ -256,6 +279,10 @@ async function goToAlcohol() {
 
 async function goToTemperature() {
   await router.push('/temperature')
+}
+
+async function goToReports() {
+  await router.push('/reports')
 }
 
 onMounted(async () => {
@@ -445,6 +472,20 @@ onMounted(async () => {
   justify-content: center;
   font-size: 0.85rem;
   font-weight: bold;
+}
+
+.manager-tools-section {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+}
+
+.manager-tools-section h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  color: #2c3e50;
 }
 
 @media (max-width: 768px) {
