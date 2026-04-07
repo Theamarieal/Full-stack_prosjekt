@@ -124,25 +124,11 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-<<<<<<< HEAD
-
-=======
->>>>>>> feature/merge-conflict-updates
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
   const userRole = authStore.user?.role
-  const allowedRoles = to.meta.roles
+  const allowedRoles = Array.isArray(to.meta.roles) ? to.meta.roles : null
 
   if (requiresAuth && !authStore.isLoggedIn) {
-<<<<<<< HEAD
-    next('/login')
-  } else if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
-    next('/')
-  } else if (to.meta.roles && !to.meta.roles.includes(authStore.getUserRole)) {
-    next('/')
-  } else {
-    next()
-  }
-=======
     return next('/login')
   }
 
@@ -155,7 +141,6 @@ router.beforeEach((to, from, next) => {
   }
 
   return next()
->>>>>>> feature/merge-conflict-updates
 })
 
 export default router
