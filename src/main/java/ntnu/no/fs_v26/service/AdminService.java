@@ -24,97 +24,92 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminService {
 
-  private final UserRepository userRepository;
-  private final OrganizationRepository organizationRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final ChecklistItemRepository checklistItemRepository;
-  private final TemperatureLogRepository temperatureLogRepository;
-  private final DeviationRepository deviationRepository;
-  private final AlcoholLogRepository alcoholLogRepository;
+    private final UserRepository userRepository;
+    private final OrganizationRepository organizationRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ChecklistItemRepository checklistItemRepository;
+    private final TemperatureLogRepository temperatureLogRepository;
+    private final DeviationRepository deviationRepository;
+    private final AlcoholLogRepository alcoholLogRepository;
 
-  public List<Map<String, Object>> getAllUsers() {
-    return userRepository.findAll().stream()
-        .map(user -> Map.<String, Object>of(
-            "id", user.getId(),
-            "email", user.getEmail(),
-            "role", user.getRole().name(),
-            "active", user.isActive()
-        ))
-        .toList();
-  }
-
-  public Map<String, Object> createUser(AdminCreateUserRequest request) {
-    if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-      throw new IllegalArgumentException("E-mail already in use: " + request.getEmail());
+    public List<Map<String, Object>> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> Map.<String, Object>of(
+                        "id", user.getId(),
+                        "email", user.getEmail(),
+                        "role", user.getRole().name(),
+                        "active", user.isActive()))
+                .toList();
     }
 
-    Organization organization = organizationRepository.findById(request.getOrganizationId())
-        .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
+    public Map<String, Object> createUser(AdminCreateUserRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new ResourceConflictException("E-mail already in use: " + request.getEmail());
+        }
 
-    User user = User.builder()
-        .email(request.getEmail())
-        .password(passwordEncoder.encode(request.getPassword()))
-        .role(request.getRole())
-        .organization(organization)
-        .active(true)
-        .build();
+        Organization organization = organizationRepository.findById(request.getOrganizationId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Organization not found: " + request.getOrganizationId()));
 
-    User saved = userRepository.save(user);
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .organization(organization)
+                .active(true)
+                .build();
 
-    return Map.of(
-        "id", saved.getId(),
-        "email", saved.getEmail(),
-        "role", saved.getRole().name(),
-        "active", saved.isActive()
-    );
-  }
+        User saved = userRepository.save(user);
 
-  public Map<String, Object> updateUserRole(Long userId, AdminUpdateRoleRequest request) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-
-    user.setRole(request.getRole());
-    User saved = userRepository.save(user);
-
-    return Map.of(
-        "id", saved.getId(),
-        "email", saved.getEmail(),
-        "role", saved.getRole().name(),
-        "active", saved.isActive()
-    );
-  }
-
-  public Map<String, Object> toggleUserActive(Long userId, AdminToggleActiveRequest request) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-
-    user.setActive(request.isActive());
-    User saved = userRepository.save(user);
-
-    return Map.of(
-        "id", saved.getId(),
-        "email", saved.getEmail(),
-        "role", saved.getRole().name(),
-        "active", saved.isActive()
-    );
-  }
-
-  public void deleteUser(Long userId) {
-    User user = userRepository.findById(userId)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
-
-    boolean hasReferences =
-        checklistItemRepository.existsByCompletedBy(user) ||
-            temperatureLogRepository.existsByLoggedBy(user) ||
-            deviationRepository.existsByReportedBy(user) ||
-            alcoholLogRepository.existsByRecordedBy(user);
-
-    if (hasReferences) {
-      throw new ResourceConflictException(
-          "User cannot be deleted because they have existing logs or deviations. Deactivate the user instead."
-      );
+        return Map.of(
+                "id", saved.getId(),
+                "email", saved.getEmail(),
+                "role", saved.getRole().name(),
+                "active", saved.isActive());
     }
 
-    userRepository.delete(user);
-  }
+    public Map<String, Object> updateUserRole(Long userId, AdminUpdateRoleRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        user.setRole(request.getRole());
+        User saved = userRepository.save(user);
+
+        return Map.of(
+                "id", saved.getId(),
+                "email", saved.getEmail(),
+                "role", saved.getRole().name(),
+                "active", saved.isActive());
+    }
+
+    public Map<String, Object> toggleUserActive(Long userId, AdminToggleActiveRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        user.setActive(request.isActive());
+        User saved = userRepository.save(user);
+
+        return Map.of(
+                "id", saved.getId(),
+                "email", saved.getEmail(),
+                "role", saved.getRole().name(),
+                "active", saved.isActive());
+    }
+
+    public void deleteUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        boolean hasReferences = checklistItemRepository.existsByCompletedBy(user)
+                || temperatureLogRepository.existsByLoggedBy(user)
+                || deviationRepository.existsByReportedBy(user)
+                || alcoholLogRepository.existsByRecordedBy(user);
+
+        if (hasReferences) {
+            throw new ResourceConflictException(
+                    "User cannot be deleted because they have existing logs or deviations. Deactivate the user instead.");
+        }
+
+        userRepository.delete(user);
+    }
 }

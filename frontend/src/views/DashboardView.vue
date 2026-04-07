@@ -10,9 +10,52 @@
         </p>
       </div>
 
-      <div class="sections-grid">
-        <section class="module-section">
-          <h2>IK-Mat</h2>
+      <LoadingSpinner v-if="loading" />
+
+      <div v-else class="dashboard-sections">
+        <div v-if="error" class="error-banner">
+          {{ error }}
+        </div>
+
+        <div v-if="canViewReports" class="manager-tools-section">
+          <h2>Management</h2>
+
+          <div class="stats-grid">
+            <div class="stat-card clickable-card" @click="goToReports">
+              <div class="card-header">
+                <h3>Reports</h3>
+                <span class="card-link">Open</span>
+              </div>
+
+              <p class="card-description">
+                Generate compliance reports for deviations, temperature logs, and alcohol logs.
+              </p>
+
+              <p class="ok-text">Available to managers and administrators</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="training-section">
+          <div class="stats-grid">
+            <div class="stat-card clickable-card" @click="goToTraining">
+              <div class="card-header">
+                <h3>Training</h3>
+                <span class="card-link">Open</span>
+              </div>
+
+              <p class="card-description">
+                View policies, complete training quizzes, and track certifications.
+              </p>
+
+              <p class="ok-text">Policies, materials, and certifications in one place</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="sections-grid">
+          <section class="module-section">
+            <h2>IK-Mat</h2>
 
             <div class="stats-grid">
               <div
@@ -32,13 +75,15 @@
                 <div v-if="temperatureSummary" class="status-list">
                   <div class="status-item">
                     <span>Measurements today</span>
-                    <strong>{{ temperatureSummary.measurementsToday }}</strong>
+                    <strong>{{ temperatureSummary.measurementsToday ?? 0 }}</strong>
                   </div>
 
                   <div class="status-item">
                     <span>Deviations today</span>
-                    <strong :class="{ 'warning-text': temperatureSummary.deviationsToday > 0 }">
-                      {{ temperatureSummary.deviationsToday }}
+                    <strong
+                      :class="{ 'warning-text': (temperatureSummary.deviationsToday ?? 0) > 0 }"
+                    >
+                      {{ temperatureSummary.deviationsToday ?? 0 }}
                     </strong>
                   </div>
                 </div>
@@ -57,29 +102,42 @@
                 </div>
 
                 <p
-                  v-if="temperatureSummary && temperatureSummary.deviationsToday === 0"
+                  v-if="temperatureSummary && (temperatureSummary.deviationsToday ?? 0) === 0"
                   class="ok-text"
                 >
                   No temperature deviations registered today
                 </p>
               </div>
 
-              <div class="stat-card clickable-card" @click="router.push('/deviations?module=IK_MAT')">
-                <h3>Deviations</h3>
-                <div class="deviation-header">
+              <div
+                class="stat-card clickable-card"
+                @click="router.push('/deviations?module=IK_MAT')"
+              >
+                <div class="card-header">
+                  <h3>Deviations</h3>
                   <span v-if="matDeviations > 0" class="badge">{{ matDeviations }}</span>
                 </div>
+
+                <p class="card-description">View and follow up open food safety deviations.</p>
+
                 <p v-if="matDeviations > 0" class="warning-text">Open deviations</p>
                 <p v-else class="ok-text">No open deviations ✓</p>
               </div>
 
               <div class="stat-card clickable-card" @click="router.push('/checklists')">
-                <h3>Checklists</h3>
+                <div class="card-header">
+                  <h3>Checklists</h3>
+                  <span class="card-link">Open</span>
+                </div>
+
+                <p class="card-description">Track task completion for food safety routines.</p>
+
                 <p v-if="matStats.total === 0">No checklists found.</p>
                 <p v-else>
                   <span class="stat-number">{{ matStats.completed }}</span> / {{ matStats.total }}
                   completed
                 </p>
+
                 <p v-if="matStats.remaining > 0" class="warning-text">
                   {{ matStats.remaining }} tasks remaining ⚠️
                 </p>
@@ -94,7 +152,7 @@
             <div class="stats-grid">
               <div
                 class="stat-card clickable-card"
-                :class="{ warning: alcoholStatus === false || alcoholWarning }"
+                :class="{ warning: alcoholStatus === false || !!alcoholWarning }"
                 @click="goToAlcohol"
               >
                 <div class="card-header">
@@ -123,21 +181,33 @@
                 class="stat-card clickable-card"
                 @click="router.push('/deviations?module=IK_ALKOHOL')"
               >
-                <h3>Deviations</h3>
-                <div class="deviation-header">
+                <div class="card-header">
+                  <h3>Deviations</h3>
                   <span v-if="alcoholDeviations > 0" class="badge">{{ alcoholDeviations }}</span>
                 </div>
+
+                <p class="card-description">View and follow up open alcohol-related deviations.</p>
+
                 <p v-if="alcoholDeviations > 0" class="warning-text">Open deviations</p>
                 <p v-else class="ok-text">No open deviations ✓</p>
               </div>
 
               <div class="stat-card clickable-card" @click="router.push('/checklists')">
-                <h3>Checklists</h3>
+                <div class="card-header">
+                  <h3>Checklists</h3>
+                  <span class="card-link">Open</span>
+                </div>
+
+                <p class="card-description">
+                  Track checklist completion for bar and serving routines.
+                </p>
+
                 <p v-if="alcoholStats.total === 0">No checklists found.</p>
                 <p v-else>
                   <span class="stat-number">{{ alcoholStats.completed }}</span> /
                   {{ alcoholStats.total }} completed
                 </p>
+
                 <p v-if="alcoholStats.remaining > 0" class="warning-text">
                   {{ alcoholStats.remaining }} tasks remaining ⚠️
                 </p>
@@ -146,7 +216,7 @@
             </div>
           </section>
         </div>
-      </template>
+      </div>
     </main>
   </div>
 </template>
@@ -174,28 +244,46 @@ const latestTemperatureDeviations = ref([])
 const checklists = ref([])
 const deviations = ref([])
 
+const currentShiftId = computed(() => {
+  return (
+    authStore.user?.activeShift?.id ||
+    authStore.user?.currentShift?.id ||
+    authStore.user?.shift?.id ||
+    null
+  )
+})
+
 const latestTemperatureDeviation = computed(() => {
   return latestTemperatureDeviations.value.length > 0 ? latestTemperatureDeviations.value[0] : null
 })
 
 const hasTemperatureDeviations = computed(() => {
-  return temperatureSummary.value && temperatureSummary.value.deviationsToday > 0
+  return (temperatureSummary.value?.deviationsToday ?? 0) > 0
 })
 
 const canViewReports = computed(() => {
   return ['MANAGER', 'ADMIN'].includes(authStore.user?.role)
 })
 
-const matDeviations = computed(
-  () => deviations.value.filter((d) => d.status === 'OPEN' && d.module === 'IK_MAT').length,
+const matDeviations = computed(() => {
+  return deviations.value.filter(
+    (d) => d.status === 'OPEN' && (d.module === 'IK_MAT' || d.module === 'IK_MATVARE'),
+  ).length
+})
+
+const alcoholDeviations = computed(() => {
+  return deviations.value.filter(
+    (d) => d.status === 'OPEN' && (d.module === 'IK_ALKOHOL' || d.module === 'BAR'),
+  ).length
+})
+
+const matChecklists = computed(() =>
+  checklists.value.filter((c) => c.module !== 'BAR' && c.module !== 'IK_ALKOHOL'),
 )
 
-const alcoholDeviations = computed(
-  () => deviations.value.filter((d) => d.status === 'OPEN' && d.module === 'IK_ALKOHOL').length,
+const alcoholChecklists = computed(() =>
+  checklists.value.filter((c) => c.module === 'BAR' || c.module === 'IK_ALKOHOL'),
 )
-
-const matChecklists = computed(() => checklists.value.filter((c) => c.module !== 'BAR'))
-const alcoholChecklists = computed(() => checklists.value.filter((c) => c.module === 'BAR'))
 
 const matStats = computed(() => {
   const allItems = matChecklists.value.flatMap((c) => c.items || [])
@@ -213,78 +301,102 @@ const alcoholStats = computed(() => {
 
 function formatDate(dateTime) {
   if (!dateTime) return '-'
-  return new Date(dateTime).toLocaleString('en-GB')
+
+  try {
+    return new Date(dateTime).toLocaleString('en-GB', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    })
+  } catch {
+    return dateTime
+  }
 }
 
 async function loadAlcoholStatus() {
   try {
     const res = await alcoholApi.getAlcoholStatus()
-    alcoholStatus.value = res.data.hasLogs
+    alcoholStatus.value = res.data?.hasLogs ?? false
   } catch (e) {
     console.error('Failed to load alcohol status:', e)
+    alcoholStatus.value = null
   }
 }
 
 async function loadAlcoholWarning() {
   try {
-    const shiftId = 1
-    const response = await alcoholApi.getMissingRegistrationWarning(shiftId)
-    if (response.data.missing) {
-      alcoholWarning.value = response.data.message
-    } else {
+    if (!currentShiftId.value || !alcoholApi.getMissingRegistrationWarning) {
       alcoholWarning.value = ''
+      return
     }
+
+    const response = await alcoholApi.getMissingRegistrationWarning(currentShiftId.value)
+    alcoholWarning.value = response.data?.missing ? response.data.message : ''
   } catch (e) {
     console.error('Failed to load alcohol warning:', e)
+    alcoholWarning.value = ''
   }
 }
 
 async function loadTemperatureData() {
   try {
     const summaryResponse = await temperatureApi.getTemperatureSummary()
-    temperatureSummary.value = summaryResponse.data
+    temperatureSummary.value = summaryResponse.data || null
   } catch (e) {
     console.error('Failed to load temperature summary:', e)
+    temperatureSummary.value = null
   }
 
   try {
     const deviationsResponse = await temperatureApi.getLatestDeviations(5)
-    latestTemperatureDeviations.value = deviationsResponse.data
+    latestTemperatureDeviations.value = Array.isArray(deviationsResponse.data)
+      ? deviationsResponse.data
+      : []
   } catch (e) {
     console.error('Failed to load latest temperature deviations:', e)
+    latestTemperatureDeviations.value = []
   }
 }
 
-async function goToAlcohol() {
-  await router.push('/alcohol')
+async function loadDashboardLists() {
+  const [deviationRes, checklistRes] = await Promise.all([
+    deviationApi.getAll(),
+    checklistApi.getAll(),
+  ])
+
+  deviations.value = Array.isArray(deviationRes.data) ? deviationRes.data : []
+  checklists.value = Array.isArray(checklistRes.data) ? checklistRes.data : []
 }
 
-async function goToTemperature() {
-  await router.push('/temperature')
+function goToAlcohol() {
+  router.push('/alcohol')
 }
 
-async function goToReports() {
-  await router.push('/reports')
+function goToTemperature() {
+  router.push('/temperature')
+}
+
+function goToReports() {
+  router.push('/reports')
+}
+
+function goToTraining() {
+  router.push('/training')
 }
 
 onMounted(async () => {
+  loading.value = true
+  error.value = ''
+
   try {
     await Promise.all([
       loadAlcoholStatus(),
       loadAlcoholWarning(),
-      loadTemperatureData()
+      loadTemperatureData(),
+      loadDashboardLists(),
     ])
-
-    const [deviationRes, checklistRes] = await Promise.all([
-      deviationApi.getAll(),
-      checklistApi.getAll()
-    ])
-
-    deviations.value = Array.isArray(deviationRes.data) ? deviationRes.data : []
-    checklists.value = Array.isArray(checklistRes.data) ? checklistRes.data : []
   } catch (e) {
+    console.error('Failed to load dashboard data:', e)
     error.value = 'Failed to load dashboard data.'
-    console.error(e)
   } finally {
     loading.value = false
   }
@@ -304,26 +416,41 @@ onMounted(async () => {
   gap: 24px;
 }
 
+.dashboard-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 .error-banner {
   background: #fee2e2;
   border: 1px solid #fecaca;
   color: #dc2626;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   text-align: center;
 }
 
-.welcome-card {
-  background: #f9f9f9;
+.welcome-card,
+.manager-tools-section,
+.training-section,
+.module-section {
+  background: #fff;
   padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ececec;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
 }
 
 .welcome-card h2 {
   margin-top: 0;
   margin-bottom: 8px;
+  color: #1f2937;
 }
 
 .sections-grid {
@@ -332,54 +459,54 @@ onMounted(async () => {
   gap: 30px;
 }
 
-.module-section {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  background: #fff;
-}
-
-.module-section h2 {
+.module-section h2,
+.manager-tools-section h2 {
   margin-top: 0;
   margin-bottom: 16px;
   font-size: 1.2rem;
-  color: #2c3e50;
+  color: #1f2937;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
 .stat-card {
   padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
   min-height: 220px;
+  display: flex;
+  flex-direction: column;
 }
 
 .card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
 .card-header h3 {
   margin: 0;
+  color: #111827;
 }
 
 .card-link {
   font-size: 0.9rem;
   font-weight: 600;
   color: #2563eb;
+  white-space: nowrap;
 }
 
 .card-description {
   margin-bottom: 16px;
-  color: #555;
+  color: #4b5563;
+  line-height: 1.5;
 }
 
 .status-list {
@@ -394,14 +521,14 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 12px;
 }
 
 .latest-deviation-box {
   margin-top: 12px;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fef2f2;
   border: 1px solid #fecaca;
 }
@@ -414,21 +541,21 @@ onMounted(async () => {
 
 .small-text {
   font-size: 0.9rem;
-  color: #666;
+  color: #6b7280;
 }
 
 .clickable-card {
   cursor: pointer;
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    border-color 0.15s ease;
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .clickable-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: #2563eb;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 14px 28px rgba(37, 99, 235, 0.12);
 }
 
 .warning {
@@ -438,51 +565,34 @@ onMounted(async () => {
 
 .stat-number {
   font-size: 1.5rem;
-  font-weight: bold;
-  color: #2c3e50;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .warning-text {
   color: #dc2626;
   font-weight: 600;
+  margin-top: auto;
 }
 
 .ok-text {
   color: #15803d;
   font-weight: 600;
-}
-
-.deviation-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 8px;
+  margin-top: auto;
 }
 
 .badge {
   background: #dc2626;
   color: white;
-  border-radius: 50%;
-  width: 28px;
+  border-radius: 999px;
+  min-width: 28px;
   height: 28px;
-  display: flex;
+  padding: 0 8px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
-  font-weight: bold;
-}
-
-.manager-tools-section {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  background: #fff;
-}
-
-.manager-tools-section h2 {
-  margin-top: 0;
-  margin-bottom: 16px;
-  font-size: 1.2rem;
-  color: #2c3e50;
+  font-weight: 700;
 }
 
 @media (max-width: 768px) {
@@ -492,6 +602,10 @@ onMounted(async () => {
 
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    min-height: unset;
   }
 }
 </style>
