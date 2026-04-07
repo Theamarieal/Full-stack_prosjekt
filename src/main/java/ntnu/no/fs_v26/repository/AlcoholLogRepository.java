@@ -1,6 +1,7 @@
 package ntnu.no.fs_v26.repository;
 
 import ntnu.no.fs_v26.model.AlcoholLog;
+import ntnu.no.fs_v26.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -22,4 +23,6 @@ public interface AlcoholLogRepository extends JpaRepository<AlcoholLog, Long> {
     List<AlcoholLog> findByOrganizationIdAndShiftDateOrderByRecordedAtDesc(
             Long organizationId,
             LocalDate shiftDate);
+
+    boolean existsByRecordedBy(User user);
 }

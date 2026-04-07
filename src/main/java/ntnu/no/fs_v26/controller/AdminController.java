@@ -52,4 +52,27 @@ public class AdminController {
       @RequestBody AdminUpdateRoleRequest request) {
     return ResponseEntity.ok(adminService.updateUserRole(userId, request));
   }
+
+  @Operation(summary = "Toggle user active status", description = "Activates or deactivates a user. Requires ADMIN role.")
+  @ApiResponse(responseCode = "200", description = "Status updated successfully")
+  @ApiResponse(responseCode = "404", description = "User not found")
+  @ApiResponse(responseCode = "403", description = "Access denied")
+  @PatchMapping("/users/{userId}/active")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Map<String, Object>> toggleUserActive(
+      @PathVariable Long userId,
+      @RequestBody AdminToggleActiveRequest request) {
+    return ResponseEntity.ok(adminService.toggleUserActive(userId, request));
+  }
+
+  @Operation(summary = "Delete a user", description = "Deletes a user by ID. Requires ADMIN role.")
+  @ApiResponse(responseCode = "204", description = "User deleted successfully")
+  @ApiResponse(responseCode = "404", description = "User not found")
+  @ApiResponse(responseCode = "403", description = "Access denied")
+  @DeleteMapping("/users/{userId}")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+    adminService.deleteUser(userId);
+    return ResponseEntity.noContent().build();
+  }
 }

@@ -37,29 +37,46 @@
           <thead>
           <tr>
             <th>E-mail</th>
+            <th>Status</th>
             <th>Role</th>
             <th>Change role</th>
+            <th>Actions</th>
           </tr>
           </thead>
           <tbody>
-          <tr v-for="user in users" :key="user.id">
+          <tr v-for="user in users" :key="user.id" :class="{ 'row-inactive': !user.active }">
             <td>{{ user.email }}</td>
+            <td>
+                <span :class="['status-badge', user.active ? 'badge-active' : 'badge-inactive']">
+                  {{ user.active ? 'Active' : 'Inactive' }}
+                </span>
+            </td>
             <td>
               <span :class="['role-badge', roleBadgeClass(user.role)]">{{ user.role }}</span>
             </td>
             <td>
               <div class="role-change">
-                <select v-model="user.pendingRole">
+                <select v-model="user.pendingRole" :disabled="!user.active">
                   <option value="EMPLOYEE">Employee</option>
                   <option value="MANAGER">Manager</option>
                   <option value="ADMIN">Admin</option>
                 </select>
                 <button
-                  class="btn-save"
-                  @click="handleChangeRole(user)"
-                  :disabled="user.pendingRole === user.role"
+                    class="btn-save"
+                    @click="handleChangeRole(user)"
+                    :disabled="user.pendingRole === user.role || !user.active"
                 >
                   Save
+                </button>
+              </div>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-deactivate" @click="handleToggleActive(user)">
+                  {{ user.active ? 'Deactivate' : 'Activate' }}
+                </button>
+                <button class="btn-delete" @click="handleDeleteUser(user)">
+                  Delete
                 </button>
               </div>
             </td>
@@ -73,7 +90,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getUsers, createUser, updateUserRole } from '@/api/admin'
+import { getUsers, createUser, updateUserRole, deleteUser, toggleUserActive } from '@/api/admin'
 
 const users = ref([])
 const loading = ref(false)
@@ -110,8 +127,7 @@ async function fetchUsers() {
     const data = await getUsers()
     users.value = data.map((u) => ({ ...u, pendingRole: u.role }))
   } catch {
-    // fall back to mock data while backend is not ready
-    users.value = mockUsers.map((u) => ({ ...u }))
+    showError('Could not load users.')
   }
 }
 
@@ -158,6 +174,30 @@ async function handleChangeRole(user) {
   }
 }
 
+async function handleToggleActive(user) {
+  const action = user.active ? 'deactivate' : 'activate'
+  if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) return
+  try {
+    await toggleUserActive(user.id, !user.active)
+    user.active = !user.active
+    showSuccess(`User ${user.email} ${user.active ? 'activated' : 'deactivated'}.`)
+  } catch {
+    showError(`Could not ${action} user. Try again.`)
+  }
+}
+
+async function handleDeleteUser(user) {
+  if (!confirm(`Are you sure you want to permanently delete ${user.email}?`)) return
+  try {
+    await deleteUser(user.id)
+    showSuccess(`User ${user.email} deleted.`)
+    await fetchUsers()
+  } catch (err) {
+    const message = err.response?.data?.error || 'Could not delete user. Try again.'
+    showError(message)
+  }
+}
+
 onMounted(fetchUsers)
 </script>
 
@@ -170,7 +210,7 @@ onMounted(fetchUsers)
 
 .admin-container {
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
 }
 
 h2 {
@@ -253,6 +293,10 @@ td {
   vertical-align: middle;
 }
 
+.row-inactive {
+  opacity: 0.5;
+}
+
 .role-change {
   display: flex;
   gap: 0.5rem;
@@ -264,10 +308,29 @@ td {
   font-size: 0.9rem;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .btn-save {
   padding: 0.4rem 0.8rem;
   font-size: 0.85rem;
   margin-top: 0;
+}
+
+.btn-deactivate {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  margin-top: 0;
+  background-color: #f39c12;
+}
+
+.btn-delete {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  margin-top: 0;
+  background-color: #e74c3c;
 }
 
 .role-badge {
@@ -290,6 +353,23 @@ td {
 .badge-employee {
   background: #e8f5e9;
   color: #27ae60;
+}
+
+.status-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.badge-active {
+  background: #e8f5e9;
+  color: #27ae60;
+}
+
+.badge-inactive {
+  background: #f0f0f0;
+  color: #999;
 }
 
 .empty-state {
