@@ -1,5 +1,6 @@
 package ntnu.no.fs_v26.auth;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import ntnu.no.fs_v26.model.Organization;
 import ntnu.no.fs_v26.model.Role;
@@ -12,8 +13,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -25,9 +24,11 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        System.out.println("REGISTER REQUEST: email=" + request.getEmail()
-                + ", role=" + request.getRole()
-                + ", organizationId=" + request.getOrganizationId());
+        System.out.println(
+                "REGISTER REQUEST: email=" + request.getEmail()
+                        + ", role=" + request.getRole()
+                        + ", organizationId=" + request.getOrganizationId());
+
         Organization organization = organizationRepository.findById(request.getOrganizationId())
                 .orElseThrow(() -> new RuntimeException("Organization not found"));
 
@@ -45,12 +46,14 @@ public class AuthenticationService {
 
         return AuthenticationResponse.builder()
                 .token(jwtToken)
-                .user(Map.of(
-                        "email", savedUser.getEmail(),
-                        "role", savedUser.getRole().name(),
-                        "organization", Map.of(
-                                "id", savedUser.getOrganization().getId(),
-                                "name", savedUser.getOrganization().getName())))
+                .user(
+                        Map.of(
+                                "email", savedUser.getEmail(),
+                                "role", savedUser.getRole().name(),
+                                "organization",
+                                Map.of(
+                                        "id", savedUser.getOrganization().getId(),
+                                        "name", savedUser.getOrganization().getName())))
                 .build();
     }
 
@@ -65,12 +68,14 @@ public class AuthenticationService {
 
         return AuthenticationResponse.builder()
                 .token(jwtToken)
-                .user(Map.of(
-                        "email", user.getEmail(),
-                        "role", user.getRole().name(),
-                        "organization", Map.of(
-                                "id", user.getOrganization().getId(),
-                                "name", user.getOrganization().getName())))
+                .user(
+                        Map.of(
+                                "email", user.getEmail(),
+                                "role", user.getRole().name(),
+                                "organization",
+                                Map.of(
+                                        "id", user.getOrganization().getId(),
+                                        "name", user.getOrganization().getName())))
                 .build();
     }
 }

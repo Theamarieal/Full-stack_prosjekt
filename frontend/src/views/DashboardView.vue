@@ -10,6 +10,38 @@
         </p>
       </div>
 
+      <div v-if="canViewReports" class="manager-tools-section">
+        <h2>Management</h2>
+
+        <div class="stats-grid">
+          <div class="stat-card clickable-card" @click="goToReports">
+            <div class="card-header">
+              <h3>Reports</h3>
+              <span class="card-link">Open</span>
+            </div>
+
+            <p class="card-description">
+              Generate compliance reports for deviations, temperature logs, and alcohol logs.
+            </p>
+
+            <p class="ok-text">Available to managers and administrators</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card clickable-card" @click="router.push('/training')">
+        <div class="card-header">
+          <h3>Training</h3>
+          <span class="card-link">Open</span>
+        </div>
+
+        <p class="card-description">
+          View policies, complete training quizzes, and track certifications.
+        </p>
+
+        <p class="ok-text">Policies, materials, and certifications in one place</p>
+      </div>
+
       <div class="sections-grid">
         <section class="module-section">
           <h2>IK-Mat</h2>
