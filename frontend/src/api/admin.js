@@ -14,3 +14,12 @@ export async function updateUserRole(userId, role) {
   const response = await api.patch(`/admin/users/${userId}/role`, { role })
   return response.data
 }
+
+export async function toggleUserActive(userId, active) {
+  const response = await api.patch(`/admin/users/${userId}/active`, { active })
+  return response.data
+}
+
+export async function deleteUser(userId) {
+  await api.delete(`/admin/users/${userId}`)
+}
