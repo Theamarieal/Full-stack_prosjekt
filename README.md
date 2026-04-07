@@ -100,7 +100,7 @@ The following test data is created automatically by `DataInitializer` when the b
 - Check temperature in fridge
 - Turn on coffeemachine
 
-To trigger a temperature deviation in the UI, log a temperature outside the equipment's limits, for example, 10°C for "Kitchen Fridge" (limit is 0–4°C).
+To trigger a temperature deviation in the UI, log a temperature outside the equipment's limits — for example, 10°C for "Kitchen Fridge" (limit is 0–4°C).
 
 ---
 
@@ -230,6 +230,7 @@ Given the three-week timeframe and a team of two, we prioritized completing core
 - Alcohol routine overview with warning on missing registration
 
 **Deliberately not implemented:**
-fyller inn senere i tilfelle noe skulle legges til
+Add later, maybe we have some time left over for implementation!!!
+
 
 We chose to prioritize OWASP security measures, input validation, test coverage, and a working end-to-end experience over adding more features that would not be fully implemented.
