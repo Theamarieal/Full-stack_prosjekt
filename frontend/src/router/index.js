@@ -81,6 +81,15 @@ const router = createRouter({
         roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
       },
     },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['ADMIN'],
+      },
+    },
     // for later if we want a specific dashboard path pointing to the same place
     {
       path: '/dashboard',
@@ -93,17 +102,15 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
-  // check if route demands login trhough meta-field
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   if (requiresAuth && !authStore.isLoggedIn) {
-    // not logged in? send to login!
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
-    // already logged in, but trying to see login/register -> send to dashboard
+    next('/')
+  } else if (to.meta.roles && !to.meta.roles.includes(authStore.getUserRole)) {
     next('/')
   } else {
-    // logged in or public site? go ahead!
     next()
   }
 })
