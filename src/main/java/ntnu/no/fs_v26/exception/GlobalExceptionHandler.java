@@ -85,4 +85,22 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.badRequest().body(body);
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", 404);
+        body.put("error", ex.getMessage());
+        body.put("timestamp", LocalDateTime.now().toString());
+        return ResponseEntity.status(404).body(body);
+    }
+
+    @ExceptionHandler(ResourceConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ResourceConflictException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", 409);
+        body.put("error", ex.getMessage());
+        body.put("timestamp", LocalDateTime.now().toString());
+        return ResponseEntity.status(409).body(body);
+    }
 }

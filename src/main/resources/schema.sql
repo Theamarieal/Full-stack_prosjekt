@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
     role VARCHAR(50) NOT NULL,
     organization_id BIGINT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (organization_id) REFERENCES organizations(id)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS checklists (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

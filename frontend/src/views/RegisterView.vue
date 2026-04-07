@@ -158,11 +158,10 @@ button {
   font-size: 0.85rem;
 }
 
-/* Gjelder både for .login-card og .register-container */
 @media (max-width: 350px) {
   .login-page, .register-wrapper {
     padding: 0;
-    background: white; /* Gjør hele bakgrunnen hvit på mobil */
+    background: white; 
     align-items: flex-start; 
   }
 
@@ -172,13 +171,11 @@ button {
     box-shadow: none;
     padding: 2rem 1.5rem;
     
-    /* FIKSEN: Dette tvinger den hvite boksen til å fylle hele skjermhøyden */
     min-height: 100vh; 
     display: flex;
     flex-direction: column;
   }
   
-  /* Sørger for at footeren alltid havner nederst i den hvite boksen */
   .footer-links, .footer-link {
     margin-top: auto; 
     padding-bottom: 2rem;

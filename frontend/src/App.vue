@@ -1,34 +1,29 @@
 <template>
   <div id="app">
-    <nav class="global-nav" v-if="authStore.isLoggedIn" aria-label="Main navigation">
+    <nav class="global-nav" v-if="authStore.isLoggedIn">
+      <span class="nav-logo">Checkd</span>
+      <div class="nav-links">
+        <a @click="router.push('/')">Dashboard</a>
+        <a @click="router.push('/checklists')">Checklists</a>
+        <a @click="router.push('/temperature')">Temperature</a>
+        <a @click="router.push('/alcohol')">Alcohol</a>
+        <a @click="router.push('/deviations')">Deviations</a>
 
-      <!-- Logo -->
-      <span
-        class="nav-logo"
-        @click="router.push('/')"
-        role="link"
-        tabindex="0"
-        @keyup.enter="router.push('/')"
-      >Kjekt</span>
-
-      <!-- Desktop links -->
-      <div class="nav-links" role="menubar">
-        <a @click="router.push('/')" role="menuitem" tabindex="0" @keyup.enter="router.push('/')">Dashboard</a>
-        <a @click="router.push('/checklists')" role="menuitem" tabindex="0" @keyup.enter="router.push('/checklists')">Checklists</a>
-        <a @click="router.push('/temperature')" role="menuitem" tabindex="0" @keyup.enter="router.push('/temperature')">Temperature</a>
-        <a @click="router.push('/alcohol')" role="menuitem" tabindex="0" @keyup.enter="router.push('/alcohol')">Alcohol</a>
-        <a @click="router.push('/deviations')" role="menuitem" tabindex="0" @keyup.enter="router.push('/deviations')">Deviations</a>
         <a
           v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
           @click="router.push('/manage-checklists')"
-          role="menuitem"
-          tabindex="0"
-          @keyup.enter="router.push('/manage-checklists')"
-          class="manager-link"
-        >Manage</a>
+          style="color: #f1c40f; font-weight: bold;"
+        >
+          Manage Checklists
+        </a>
+        <a
+          v-if="authStore.getUserRole === 'ADMIN'"
+          @click="router.push('/admin')"
+          style="color: #e74c3c; font-weight: bold;"
+        >
+          Admin
+        </a>
       </div>
-
-      <!-- Desktop right side -->
       <div class="nav-right">
         <span class="nav-user">{{ authStore.user?.email }} ({{ authStore.user?.role }})</span>
         <button @click="handleLogout" class="logout-btn">Log out</button>
@@ -71,7 +66,6 @@
         <button @click="handleLogout" class="logout-btn">Log out</button>
       </div>
     </div>
-
     <router-view />
   </div>
 </template>
@@ -167,6 +161,16 @@ body {
 .manager-link {
   color: #f1c40f !important;
   font-weight: bold;
+}
+
+.admin-link {
+  color: #e74c3c !important; /* Den røde fargen fra dev-branchen */
+  font-weight: bold;
+}
+
+.mobile-menu .admin-link {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(231, 76, 60, 0.1); /* En svak rød nyanse i bakgrunnen på mobil */
 }
 
 .nav-right {

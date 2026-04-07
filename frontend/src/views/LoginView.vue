@@ -87,14 +87,13 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-/* 1. LAYOUT & BAKGRUNN */
 .login-page {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   width: 100%;
-  background-color: #f7f6f2; /* Den lune bakgrunnsfargen */
+  background-color: #f7f6f2;
   padding: 20px;
 }
 
@@ -110,7 +109,6 @@ const handleLogin = async () => {
   flex-direction: column;
 }
 
-/* 2. ESTETIKK: LOGO & BRANDING */
 .branding { text-align: center; margin-bottom: 2.5rem; }
 
 .logo-icon {
@@ -140,7 +138,6 @@ const handleLogin = async () => {
 .app-name { font-size: 2.25rem; font-weight: 800; color: #3C3489; margin: 0; letter-spacing: -0.5px; }
 .slogan { font-size: 0.85rem; color: #7F77DD; text-transform: uppercase; letter-spacing: 0.15em; }
 
-/* 3. SKJEMA-ELEMENTER */
 .form-group { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
 label { font-weight: 600; margin-bottom: 6px; color: #3C3489; font-size: 0.9rem; }
 input { padding: 12px; border: 1.5px solid #e0dfd8; border-radius: 10px; font-size: 16px; width: 100%; background: #fafaf8; }
@@ -159,7 +156,6 @@ input:focus { outline: none; border-color: #7F77DD; background: #ffffff; }
 
 .dev-hint { font-size: 0.75rem; color: #999; text-align: center; margin-top: 1rem; }
 
-/* 4. RESPONSIVITET: MOBIL-FIKS */
 @media (max-width: 350px) {
   .login-page {
     padding: 0;
@@ -176,7 +172,7 @@ input:focus { outline: none; border-color: #7F77DD; background: #ffffff; }
   }
 
   .footer-link {
-    margin-top: auto; /* Dytter footeren til bunnen av mobilskjermen */
+    margin-top: auto;
     padding-bottom: 2rem;
   }
 }

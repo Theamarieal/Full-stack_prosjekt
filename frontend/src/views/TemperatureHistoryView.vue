@@ -205,7 +205,6 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-/* Responsiv Grid for Filter */
 .filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -237,7 +236,6 @@ input, select {
   gap: 12px;
 }
 
-/* Tabell-styling */
 .table-wrapper { width: 100%; }
 
 table {
@@ -273,7 +271,6 @@ td {
 .text-error { color: #dc2626; font-weight: 600; }
 .text-success { color: #059669; }
 
-/* Mobil-kort logikk */
 .mobile-log-cards { display: none; }
 
 @media (max-width: 900px) {
@@ -296,7 +293,6 @@ td {
     justify-content: center;
   }
 
-  /* Skjul tabell, vis kort */
   .desktop-table { display: none; }
   
   .mobile-log-cards {
