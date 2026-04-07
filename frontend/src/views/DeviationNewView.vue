@@ -184,5 +184,29 @@ textarea:focus {
 .btn-secondary:hover {
   border-color: #2563eb;
 }
+@media (max-width: 768px) {
+  .deviation-new {
+    margin: 16px auto;
+    padding: 0 16px;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    width: 100%;
+    text-align: center;
+  }
+}
 </style>
 
