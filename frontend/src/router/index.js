@@ -27,6 +27,12 @@ const router = createRouter({
       component: () => import('../views/RegisterView.vue'),
     },
     {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('@/views/ReportView.vue'),
+      meta: { requiresAuth: true, roles: ['MANAGER', 'ADMIN'] },
+    },
+    {
       path: '/',
       name: 'dashboard',
       component: () => import('../views/DashboardView.vue'),
@@ -98,10 +104,13 @@ const router = createRouter({
   ],
 })
 
-// navigation-guard
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
+<<<<<<< HEAD
+  if (to.meta.requiresAuth && !authStore.token) {
+    return next('/login')
+=======
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
 
   if (requiresAuth && !authStore.isLoggedIn) {
@@ -112,7 +121,14 @@ router.beforeEach((to, from, next) => {
     next('/')
   } else {
     next()
+>>>>>>> 335734ccb015cfd6ba6b2821ccafa8bde791bc9e
   }
+
+  if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
+    return next('/')
+  }
+
+  next()
 })
 
 export default router

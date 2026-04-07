@@ -63,7 +63,13 @@
             <div class="form-grid">
               <div class="form-group">
                 <label for="guestAge">Guest age</label>
-                <input id="guestAge" v-model.number="form.guestAge" type="number" min="0" max="90" />
+                <input
+                  id="guestAge"
+                  v-model.number="form.guestAge"
+                  type="number"
+                  min="0"
+                  max="90"
+                />
                 <p v-if="fieldErrors.guestAge" class="field-error">
                   {{ fieldErrors.guestAge }}
                 </p>
@@ -84,44 +90,49 @@
                 </p>
               </div>
 
-              <div class="form-group checkbox-field">
-                <label class="checkbox-row" for="idChecked">
-                  <span>ID checked</span>
-                  <input id="idChecked" type="checkbox" v-model="form.idChecked" />
-                </label>
+              <div class="form-group">
+                <label for="idChecked">ID checked</label>
+                <select id="idChecked" v-model="form.idChecked">
+                  <option :value="null" disabled>Select an option</option>
+                  <option :value="true">Yes</option>
+                  <option :value="false">No</option>
+                </select>
+                <p v-if="fieldErrors.idChecked" class="field-error">
+                  {{ fieldErrors.idChecked }}
+                </p>
               </div>
 
-              <div class="form-group checkbox-field">
-                <label class="checkbox-row" for="serviceDenied">
-                  <span>Service denied</span>
-                  <input id="serviceDenied" type="checkbox" v-model="form.serviceDenied" />
-                </label>
+              <div class="form-group">
+                <label for="serviceDenied">Service denied</label>
+                <select id="serviceDenied" v-model="form.serviceDenied">
+                  <option :value="null" disabled>Select an option</option>
+                  <option :value="true">Yes</option>
+                  <option :value="false">No</option>
+                </select>
+                <p v-if="fieldErrors.serviceDenied" class="field-error">
+                  {{ fieldErrors.serviceDenied }}
+                </p>
               </div>
-
-              <p v-if="fieldErrors.idChecked" class="field-error">
-                {{ fieldErrors.idChecked }}
-              </p>
-
-              <p v-if="fieldErrors.serviceDenied" class="field-error">
-                {{ fieldErrors.serviceDenied }}
-              </p>
             </div>
 
-            <div v-if="requiresDenialNotes()" class="form-group full-width">
-              <label for="denialNotes">Reason for denied service</label>
+            <div v-if="showAgeCheckNotes" class="form-group full-width">
+              <label for="ageCheckNotes">{{ ageCheckNotesLabel }}</label>
               <textarea
-                id="denialNotes"
+                id="ageCheckNotes"
                 v-model="form.notes"
                 rows="4"
-                placeholder="Explain why service was denied even though the age requirement was met."
+                :placeholder="ageCheckNotesPlaceholder"
               />
+              <p v-if="fieldErrors.notes" class="field-error">
+                {{ fieldErrors.notes }}
+              </p>
             </div>
 
             <div class="law-box">
               <strong>Age control rules</strong>
               <p>
-                Guests must be at least 18 for alcohol below 22% and at least 20 for alcohol at 22% or
-                above. If service is not legally allowed, it must be denied.
+                Guests must be at least 18 for alcohol below 22% and at least 20 for alcohol at 22%
+                or above. If service is not legally allowed, it must be denied.
               </p>
             </div>
           </div>
@@ -203,19 +214,19 @@
 
         <table v-else class="history-table">
           <thead>
-          <tr>
-            <th>Time</th>
-            <th>Type</th>
-            <th>Notes</th>
-            <th>Recorded by</th>
-            <th v-if="canSearchHistory">Date</th>
-          </tr>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Notes</th>
+              <th>Recorded by</th>
+              <th v-if="canSearchHistory">Date</th>
+            </tr>
           </thead>
           <tbody>
-          <tr v-for="log in history" :key="log.id">
-            <td>{{ formatTime(log.recordedAt) }}</td>
-            <td>
-              <div class="type-badge-list">
+            <tr v-for="log in history" :key="log.id">
+              <td>{{ formatTime(log.recordedAt) }}</td>
+              <td>
+                <div class="type-badge-list">
                   <span
                     v-for="displayType in log.displayTypes"
                     :key="displayType"
@@ -224,12 +235,12 @@
                   >
                     {{ formatType(displayType) }}
                   </span>
-              </div>
-            </td>
-            <td>{{ log.notes || '-' }}</td>
-            <td>{{ log.recordedBy || '-' }}</td>
-            <td v-if="canSearchHistory">{{ formatDate(log.recordedAt) }}</td>
-          </tr>
+                </div>
+              </td>
+              <td>{{ log.notes || '-' }}</td>
+              <td>{{ log.recordedBy || '-' }}</td>
+              <td v-if="canSearchHistory">{{ formatDate(log.recordedAt) }}</td>
+            </tr>
           </tbody>
         </table>
       </section>
@@ -254,15 +265,7 @@ const successMessage = ref('')
 const history = ref([])
 const historyDate = ref('')
 
-const form = ref({
-  type: 'AGE_CHECK',
-  recordedTime: getNowLocalTime(),
-  notes: '',
-  guestAge: null,
-  alcoholPercentage: null,
-  idChecked: false,
-  serviceDenied: false,
-})
+const form = ref(createDefaultForm())
 
 const fieldErrors = ref({
   guestAge: '',
@@ -272,6 +275,18 @@ const fieldErrors = ref({
   notes: '',
   recordedTime: '',
 })
+
+function createDefaultForm() {
+  return {
+    type: 'AGE_CHECK',
+    recordedTime: getNowLocalTime(),
+    notes: '',
+    guestAge: null,
+    alcoholPercentage: null,
+    idChecked: null,
+    serviceDenied: null,
+  }
+}
 
 /**
  * Clears all field-specific validation messages.
@@ -289,8 +304,6 @@ function clearFieldErrors() {
 
 /**
  * Indicates whether the current user can search historical dates.
- *
- * @type {import('vue').ComputedRef<boolean>}
  */
 const canSearchHistory = computed(() => {
   const role = authStore.user?.role
@@ -298,9 +311,89 @@ const canSearchHistory = computed(() => {
 })
 
 /**
+ * Returns whether the guest is legally old enough for the selected alcohol percentage.
+ */
+function isGuestOldEnough() {
+  if (form.value.guestAge == null || form.value.alcoholPercentage == null) {
+    return false
+  }
+
+  if (form.value.alcoholPercentage >= 22) {
+    return form.value.guestAge >= 20
+  }
+
+  return form.value.guestAge >= 18
+}
+
+/**
+ * Returns whether this age check represents a compliance-risk situation.
+ * These cases should be allowed to save, and the backend should create a deviation.
+ */
+const isDeviationAgeCheck = computed(() => {
+  if (form.value.type !== 'AGE_CHECK') {
+    return false
+  }
+
+  if (
+    form.value.guestAge == null ||
+    form.value.alcoholPercentage == null ||
+    form.value.idChecked == null ||
+    form.value.serviceDenied == null
+  ) {
+    return false
+  }
+
+  const noIdChecked = form.value.idChecked === false
+  const servedUnder18 = form.value.guestAge < 18 && form.value.serviceDenied === false
+  const servedStrongAlcoholUnder20 =
+    form.value.alcoholPercentage >= 22 &&
+    form.value.guestAge < 20 &&
+    form.value.serviceDenied === false
+
+  return noIdChecked || servedUnder18 || servedStrongAlcoholUnder20
+})
+
+/**
+ * Notes are shown for all age checks so the employee can document the situation.
+ */
+const showAgeCheckNotes = computed(() => {
+  return form.value.type === 'AGE_CHECK'
+})
+
+const ageCheckNotesLabel = computed(() => {
+  if (requiresDenialNotes()) {
+    return 'Reason for denied service'
+  }
+
+  if (isDeviationAgeCheck.value) {
+    return 'Additional notes'
+  }
+
+  return 'Notes (optional)'
+})
+
+const ageCheckNotesPlaceholder = computed(() => {
+  if (requiresDenialNotes()) {
+    return 'Explain why service was denied even though the guest met the age requirement.'
+  }
+
+  if (isDeviationAgeCheck.value) {
+    return 'Add any relevant details about this registration.'
+  }
+
+  return 'Add optional notes for this age check.'
+})
+
+/**
+ * Returns whether denial notes are required.
+ * Notes are required when service is denied even though the guest is legally old enough.
+ */
+function requiresDenialNotes() {
+  return form.value.type === 'AGE_CHECK' && form.value.serviceDenied === true && isGuestOldEnough()
+}
+
+/**
  * Returns the current local time formatted for a time input.
- *
- * @returns {string} Current local time in HH:mm format.
  */
 function getNowLocalTime() {
   const now = new Date()
@@ -310,9 +403,6 @@ function getNowLocalTime() {
 
 /**
  * Formats an ISO date-time string to a date string.
- *
- * @param {string|null|undefined} value - The ISO date-time value.
- * @returns {string} Formatted date or fallback value.
  */
 function formatDate(value) {
   if (!value) return '-'
@@ -321,9 +411,6 @@ function formatDate(value) {
 
 /**
  * Formats an ISO date-time string to a time string.
- *
- * @param {string|null|undefined} value - The ISO date-time value.
- * @returns {string} Formatted time or fallback value.
  */
 function formatTime(value) {
   if (!value) return '-'
@@ -335,9 +422,6 @@ function formatTime(value) {
 
 /**
  * Converts an alcohol log type enum value into user-friendly text.
- *
- * @param {string} type - The alcohol log type.
- * @returns {string} A user-friendly label.
  */
 function formatType(type) {
   switch (type) {
@@ -358,9 +442,6 @@ function formatType(type) {
 
 /**
  * Returns a CSS class name for a type badge.
- *
- * @param {string} type - The alcohol log type.
- * @returns {string} A CSS class suffix for styling.
  */
 function badgeClass(type) {
   switch (type) {
@@ -381,9 +462,6 @@ function badgeClass(type) {
 
 /**
  * Returns a normalized text value for comparison.
- *
- * @param {string|null|undefined} value - The value to normalize.
- * @returns {string} A trimmed normalized string.
  */
 function normalizeText(value) {
   return (value || '').trim()
@@ -461,12 +539,6 @@ function validateForm() {
     return false
   }
 
-  if (form.value.type !== 'INCIDENT' && !requiresDenialNotes() && form.value.notes?.trim()) {
-    fieldErrors.value.notes =
-      'Notes are only allowed for incidents or denied age checks that require an explanation.'
-    return false
-  }
-
   if (form.value.type === 'AGE_CHECK') {
     if (form.value.guestAge == null || form.value.guestAge === '') {
       fieldErrors.value.guestAge = 'Guest age is required.'
@@ -488,29 +560,19 @@ function validateForm() {
       return false
     }
 
-    if (form.value.idChecked !== true) {
-      fieldErrors.value.idChecked = 'ID must be checked for an age check registration.'
+    if (form.value.idChecked == null) {
+      fieldErrors.value.idChecked = 'Please select whether ID was checked.'
+      return false
+    }
+
+    if (form.value.serviceDenied == null) {
+      fieldErrors.value.serviceDenied = 'Please select whether service was denied.'
       return false
     }
 
     if (requiresDenialNotes() && !form.value.notes?.trim()) {
       fieldErrors.value.notes =
         'A reason is required when service is denied even though the guest is old enough.'
-      return false
-    }
-
-    if (form.value.guestAge < 18 && form.value.serviceDenied !== true) {
-      fieldErrors.value.serviceDenied = 'Service must be denied for guests under 18.'
-      return false
-    }
-
-    if (
-      form.value.alcoholPercentage >= 22 &&
-      form.value.guestAge < 20 &&
-      form.value.serviceDenied !== true
-    ) {
-      fieldErrors.value.serviceDenied =
-        'Service must be denied for alcohol at 22% or more when the guest is under 20.'
       return false
     }
   }
@@ -520,8 +582,6 @@ function validateForm() {
 
 /**
  * Loads alcohol logs for the current active shift.
- *
- * @returns {Promise<void>}
  */
 async function loadHistory() {
   isLoadingHistory.value = true
@@ -562,8 +622,6 @@ async function loadHistoryByDate() {
 
 /**
  * Submits a new alcohol log entry to the backend.
- *
- * @returns {Promise<void>}
  */
 async function submitLog() {
   if (!validateForm()) return
@@ -576,7 +634,8 @@ async function submitLog() {
     const payload = {
       type: form.value.type,
       recordedTime: form.value.recordedTime,
-      notes: form.value.type === 'INCIDENT' || requiresDenialNotes() ? form.value.notes : null,
+      notes:
+        form.value.type === 'INCIDENT' || form.value.type === 'AGE_CHECK' ? form.value.notes : null,
       guestAge: form.value.type === 'AGE_CHECK' ? form.value.guestAge : null,
       alcoholPercentage: form.value.type === 'AGE_CHECK' ? form.value.alcoholPercentage : null,
       idChecked: form.value.type === 'AGE_CHECK' ? form.value.idChecked : null,
@@ -586,25 +645,19 @@ async function submitLog() {
     await alcoholApi.createLog(payload)
 
     successMessage.value = 'Alcohol registration saved successfully.'
-    form.value = {
-      type: 'AGE_CHECK',
-      recordedTime: getNowLocalTime(),
-      notes: '',
-      guestAge: null,
-      alcoholPercentage: null,
-      idChecked: null,
-      serviceDenied: null,
-    }
+    form.value = createDefaultForm()
 
     await loadHistory()
     activeTab.value = 'history'
   } catch (error) {
     console.error('Failed to save alcohol log:', error)
 
-    const backendMessage = error.response?.data?.message
+    const responseData = error.response?.data
 
-    if (backendMessage) {
-      errorMessage.value = backendMessage
+    if (typeof responseData === 'string') {
+      errorMessage.value = responseData
+    } else if (responseData?.message) {
+      errorMessage.value = responseData.message
     } else {
       errorMessage.value = 'Failed to save alcohol registration.'
     }
@@ -614,30 +667,33 @@ async function submitLog() {
 }
 
 /**
- * Returns whether the guest is legally old enough for the selected alcohol percentage.
- *
- * @returns {boolean} True if the guest is legally old enough, otherwise false.
+ * Clear messages when the log type changes.
  */
-function isGuestOldEnough() {
-  if (form.value.guestAge == null || form.value.alcoholPercentage == null) {
-    return false
-  }
+watch(
+  () => form.value.type,
+  (newType) => {
+    clearFieldErrors()
+    errorMessage.value = ''
+    successMessage.value = ''
 
-  if (form.value.alcoholPercentage >= 22) {
-    return form.value.guestAge >= 20
-  }
+    if (newType !== 'AGE_CHECK') {
+      form.value.guestAge = null
+      form.value.alcoholPercentage = null
+      form.value.idChecked = null
+      form.value.serviceDenied = null
+    }
 
-  return form.value.guestAge >= 18
-}
+    if (newType !== 'AGE_CHECK' && newType !== 'INCIDENT') {
+      form.value.notes = ''
+    }
 
-/**
- * Returns whether denial notes are required.
- *
- * @returns {boolean} True if denial notes are required.
- */
-function requiresDenialNotes() {
-  return form.value.type === 'AGE_CHECK' && form.value.serviceDenied === true && isGuestOldEnough()
-}
+    if (newType === 'AGE_CHECK') {
+      form.value.notes = ''
+      form.value.idChecked = null
+      form.value.serviceDenied = null
+    }
+  },
+)
 
 /**
  * Loads history when the history tab becomes active.
@@ -647,17 +703,6 @@ watch(activeTab, async (newTab) => {
     await loadHistory()
   }
 })
-
-watch(
-  () => [form.value.guestAge, form.value.alcoholPercentage],
-  ([age, percentage]) => {
-    if (age == null || percentage == null) return
-
-    if (age < 18 || (percentage >= 22 && age < 20)) {
-      form.value.serviceDenied = true
-    }
-  },
-)
 
 /**
  * Loads initial history when the component is mounted.
@@ -898,31 +943,6 @@ onMounted(async () => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-}
-
-.checkbox-field {
-  justify-content: end;
-}
-
-.checkbox-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 62px;
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  background: #ffffff;
-  font-weight: 600;
-  box-sizing: border-box;
-  cursor: pointer;
-}
-
-.checkbox-row input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
-  margin: 0;
 }
 
 .field-error {

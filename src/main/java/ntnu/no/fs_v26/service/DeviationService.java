@@ -74,10 +74,14 @@ public class DeviationService {
         }
 
         deviation.setStatus(newStatus);
+
         if (newStatus == DeviationStatus.RESOLVED) {
             deviation.setResolvedAt(LocalDateTime.now());
+        } else {
+            deviation.setResolvedAt(null);
         }
 
         return repository.save(deviation);
     }
 }
+

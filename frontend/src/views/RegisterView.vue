@@ -7,22 +7,12 @@
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label>E-mail</label>
-          <input
-            v-model="email"
-            type="email"
-            placeholder="name@bedrift.no"
-            required
-          />
+          <input v-model="email" type="email" placeholder="name@bedrift.no" required />
         </div>
 
         <div class="form-group">
           <label>Password</label>
-          <input
-            v-model="password"
-            type="password"
-            placeholder="At least 8 characters"
-            required
-          />
+          <input v-model="password" type="password" placeholder="At least 8 characters" required />
           <ul class="password-requirements">
             <li :class="{ met: password.length >= 8 }">At least 8 characters</li>
             <li :class="{ met: /[A-Z]/.test(password) }">At least one uppercase letter</li>
@@ -32,12 +22,7 @@
 
         <div class="form-group">
           <label>Confirm password</label>
-          <input
-            v-model="confirmPassword"
-            type="password"
-            placeholder="Repeat your password"
-            required
-          />
+          <input v-model="confirmPassword" type="password" placeholder="Repeat your password" required />
           <p v-if="confirmPassword && password !== confirmPassword" class="field-error">
             Passwords do not match.
           </p>
@@ -110,11 +95,11 @@ const handleRegister = async () => {
 
   loading.value = true
   try {
-    const success = await auth.register(email.value, password.value, role.value, 1)
-    if (success) {
-      router.push('/dashboard')
+    const result = await auth.register(email.value, password.value, role.value, 1)
+    if (result.success) {
+      router.push('/')
     } else {
-      error.value = 'Something went wrong. Try again.'
+      error.value = result.message || 'Something went wrong. Try again.'
     }
   } catch {
     error.value = 'Could not create user. Maybe e-mail is already in use?'
@@ -179,7 +164,7 @@ select {
 button {
   width: 100%;
   padding: 14px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 10px;
@@ -240,7 +225,7 @@ button:disabled {
 }
 
 a {
-  color: #4CAF50;
+  color: #4caf50;
   text-decoration: none;
   font-weight: bold;
 }

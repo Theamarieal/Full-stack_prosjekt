@@ -1,9 +1,13 @@
 package ntnu.no.fs_v26.service;
 
 import lombok.RequiredArgsConstructor;
+import ntnu.no.fs_v26.model.Deviation;
+import ntnu.no.fs_v26.model.DeviationModule;
+import ntnu.no.fs_v26.model.DeviationStatus;
 import ntnu.no.fs_v26.model.Equipment;
 import ntnu.no.fs_v26.model.TemperatureLog;
 import ntnu.no.fs_v26.model.User;
+import ntnu.no.fs_v26.repository.DeviationRepository;
 import ntnu.no.fs_v26.repository.EquipmentRepository;
 import ntnu.no.fs_v26.repository.TemperatureLogRepository;
 import org.springframework.stereotype.Service;
@@ -19,8 +23,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TemperatureService {
+
     private final TemperatureLogRepository logRepository;
     private final EquipmentRepository equipmentRepository;
+    private final DeviationRepository deviationRepository;
 
     public TemperatureLog logTemperature(Long equipmentId, double value, User user) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
@@ -44,7 +50,13 @@ public class TemperatureService {
                 .isDeviation(deviation)
                 .build();
 
-        return logRepository.save(log);
+        TemperatureLog savedLog = logRepository.save(log);
+
+        if (deviation) {
+            createTemperatureDeviation(savedLog);
+        }
+
+        return savedLog;
     }
 
     public List<TemperatureLog> getLogsForOrganization(User user) {
@@ -66,28 +78,34 @@ public class TemperatureService {
             String fromDate,
             String toDate,
             String status) {
+
         return logRepository.findAllByEquipmentOrganizationId(user.getOrganization().getId())
                 .stream()
                 .filter(log -> equipmentId == null || log.getEquipment().getId().equals(equipmentId))
                 .filter(log -> {
-                    if (fromDate == null || fromDate.isBlank())
+                    if (fromDate == null || fromDate.isBlank()) {
                         return true;
+                    }
                     LocalDate from = LocalDate.parse(fromDate);
                     return !log.getTimestamp().toLocalDate().isBefore(from);
                 })
                 .filter(log -> {
-                    if (toDate == null || toDate.isBlank())
+                    if (toDate == null || toDate.isBlank()) {
                         return true;
+                    }
                     LocalDate to = LocalDate.parse(toDate);
                     return !log.getTimestamp().toLocalDate().isAfter(to);
                 })
                 .filter(log -> {
-                    if (status == null || status.isBlank())
+                    if (status == null || status.isBlank()) {
                         return true;
-                    if (status.equalsIgnoreCase("OK"))
+                    }
+                    if (status.equalsIgnoreCase("OK")) {
                         return !log.isDeviation();
-                    if (status.equalsIgnoreCase("DEVIATION"))
+                    }
+                    if (status.equalsIgnoreCase("DEVIATION")) {
                         return log.isDeviation();
+                    }
                     return true;
                 })
                 .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp()))
@@ -125,5 +143,22 @@ public class TemperatureService {
                 .collect(Collectors.toList());
 
         return logs.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    private void createTemperatureDeviation(TemperatureLog log) {
+        String equipmentName = log.getEquipment() != null ? log.getEquipment().getName() : "Unknown equipment";
+
+        Deviation deviation = Deviation.builder()
+                .title("Temperature deviation detected")
+                .description("Temperature reading " + log.getValue() + " °C for " + equipmentName
+                        + " is outside the allowed range.")
+                .module(DeviationModule.IK_MAT)
+                .status(DeviationStatus.OPEN)
+                .createdAt(LocalDateTime.now())
+                .reportedBy(log.getLoggedBy())
+                .organization(log.getEquipment().getOrganization())
+                .build();
+
+        deviationRepository.save(deviation);
     }
 }

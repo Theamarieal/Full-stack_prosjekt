@@ -4,9 +4,6 @@ import ntnu.no.fs_v26.model.AlcoholLogType;
 
 import java.time.LocalDateTime;
 
-/**
- * Response DTO for alcohol log data returned to the frontend.
- */
 public class AlcoholLogResponse {
 
     private Long id;
@@ -19,9 +16,6 @@ public class AlcoholLogResponse {
     private Boolean idChecked;
     private Boolean serviceDenied;
 
-    public AlcoholLogResponse() {
-    }
-
     public AlcoholLogResponse(
             Long id,
             AlcoholLogType type,
@@ -31,7 +25,8 @@ public class AlcoholLogResponse {
             Integer guestAge,
             Double alcoholPercentage,
             Boolean idChecked,
-            Boolean serviceDenied) {
+            Boolean serviceDenied
+    ) {
         this.id = id;
         this.type = type;
         this.notes = notes;

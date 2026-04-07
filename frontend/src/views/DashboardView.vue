@@ -1,24 +1,18 @@
 <template>
   <div class="dashboard">
     <main class="dashboard-content">
-      <LoadingSpinner v-if="loading" message="Loading dashboard..." />
-
-      <div v-else-if="error" class="error-banner">
-        {{ error }}
+      <div class="welcome-card">
+        <h2>Welcome to Checkd</h2>
+        <p>
+          This is your overview for
+          <strong>{{ authStore.user?.organization?.name || 'your restaurant' }}</strong
+          >.
+        </p>
       </div>
 
-      <template v-else>
-        <div class="welcome-card">
-          <h2>Welcome to Checkd</h2>
-          <p>
-            This is your overview for
-            <strong>{{ authStore.user?.organization?.name || 'your restaurant' }}</strong>.
-          </p>
-        </div>
-
-        <div class="sections-grid">
-          <section class="module-section">
-            <h2>IK-Mat</h2>
+      <div class="sections-grid">
+        <section class="module-section">
+          <h2>IK-Mat</h2>
 
             <div class="stats-grid">
               <div
@@ -188,6 +182,10 @@ const hasTemperatureDeviations = computed(() => {
   return temperatureSummary.value && temperatureSummary.value.deviationsToday > 0
 })
 
+const canViewReports = computed(() => {
+  return ['MANAGER', 'ADMIN'].includes(authStore.user?.role)
+})
+
 const matDeviations = computed(
   () => deviations.value.filter((d) => d.status === 'OPEN' && d.module === 'IK_MAT').length,
 )
@@ -263,6 +261,10 @@ async function goToAlcohol() {
 
 async function goToTemperature() {
   await router.push('/temperature')
+}
+
+async function goToReports() {
+  await router.push('/reports')
 }
 
 onMounted(async () => {
@@ -467,6 +469,20 @@ onMounted(async () => {
   justify-content: center;
   font-size: 0.85rem;
   font-weight: bold;
+}
+
+.manager-tools-section {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+}
+
+.manager-tools-section h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  color: #2c3e50;
 }
 
 @media (max-width: 768px) {
