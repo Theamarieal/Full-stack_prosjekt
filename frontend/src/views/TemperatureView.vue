@@ -8,7 +8,9 @@
       <p>Register temperature readings for your equipment.</p>
     </div>
 
-    <div class="temperature-grid">
+    <LoadingSpinner v-if="initialLoading" message="Loading equipment..." />
+
+    <div v-else class="temperature-grid">
       <section class="card form-card">
         <h2>New Reading</h2>
 
@@ -38,7 +40,7 @@
             v-model.number="temperatureValue"
             type="number"
             step="0.1"
-            placeholder="Enter measured temperature"
+            placeholder="e.g. 3.5"
           />
         </div>
 
@@ -46,17 +48,13 @@
           v-if="selectedEquipment && temperatureValue !== null && temperatureValue !== ''"
           :class="['status-box', isDeviation ? 'deviation' : 'ok']"
         >
-          {{
-            isDeviation
-              ? 'This reading is a deviation.'
-              : 'This reading is within the allowed range.'
-          }}
+          {{ isDeviation ? '⚠ This reading is a deviation.' : '✓ This reading is within range.' }}
         </div>
 
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
         <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
 
-        <button type="button" class="primary-btn" @click="submitReading" :disabled="loading">
+        <button type="button" class="primary-btn submit-btn" @click="submitReading" :disabled="loading">
           {{ loading ? 'Saving...' : 'Save Reading' }}
         </button>
       </section>
@@ -69,7 +67,7 @@
           </button>
         </div>
 
-        <div class="table-wrapper">
+        <div class="table-wrapper desktop-only">
           <table>
             <thead>
               <tr>
@@ -80,22 +78,22 @@
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="log in latestLogs"
-                :key="log.id"
-                :class="{ 'deviation-row': isLogDeviation(log) }"
-              >
-                <td>{{ formatDate(log.timestamp) }}</td>
-                <td>{{ log.equipment?.name || 'Unknown equipment' }}</td>
-                <td>{{ log.value }} °C</td>
-                <td>{{ isLogDeviation(log) ? 'Deviation' : 'OK' }}</td>
-              </tr>
-
-              <tr v-if="latestLogs.length === 0">
-                <td colspan="4">No temperature readings found.</td>
+              <tr v-for="log in latestLogs" :key="log.id" :class="{ 'deviation-row': isLogDeviation(log) }">
+                <td>{{ formatDate(log.timestamp).split(',')[1] }}</td>
+                <td>{{ log.equipment?.name }}</td>
+                <td><strong>{{ log.value }} °C</strong></td>
+                <td>{{ isLogDeviation(log) ? 'Dev' : 'OK' }}</td>
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="mobile-only latest-logs-mobile">
+          <div v-for="log in latestLogs" :key="log.id" class="mini-log-card" :class="{ 'mini-dev': isLogDeviation(log) }">
+             <span>{{ log.equipment?.name }}</span>
+             <strong>{{ log.value }} °C</strong>
+             <small>{{ formatDate(log.timestamp).split(',')[1] }}</small>
+          </div>
         </div>
       </section>
     </div>
@@ -107,6 +105,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import temperatureApi from '@/api/temperature'
 import equipmentApi from '@/api/equipment'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter()
 
@@ -116,6 +115,7 @@ const latestLogs = ref([])
 const selectedEquipmentId = ref('')
 const temperatureValue = ref(null)
 
+const initialLoading = ref(true)
 const loading = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
@@ -146,7 +146,6 @@ function formatDate(dateTime) {
 async function fetchEquipment() {
   try {
     const response = await equipmentApi.getAllEquipment()
-    console.log('Equipment response:', response.data)
     equipmentList.value = response.data || []
   } catch (error) {
     console.error('Failed to load equipment:', error)
@@ -224,16 +223,40 @@ function goToHistory() {
 }
 
 onMounted(async () => {
-  await fetchEquipment()
-  await fetchLatestLogs()
+  await Promise.all([fetchEquipment(), fetchLatestLogs()])
+  initialLoading.value = false
 })
 </script>
 
 <style scoped>
+/* 1. Grunnleggende reset for komponenten */
+* {
+  box-sizing: border-box; /* Sikrer at padding ikke legger til ekstra bredde */
+}
+
 .temperature-page {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  width: 100%;
+  overflow-x: hidden; /* Hindrer at noe dytter siden sidelengs */
+}
+
+/* 2. Layout Grid - FIKSET: Fjerner minmax(420px) som ødela for mobil */
+.temperature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* 3. Kort og elementer */
+.card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
 }
 
 .page-header {
@@ -242,40 +265,15 @@ onMounted(async () => {
 
 .page-header h1 {
   margin: 0 0 8px;
+  font-size: 1.8rem;
 }
 
 .page-header p {
   margin: 0;
-  color: #555;
+  color: #666;
 }
 
-.temperature-grid {
-  display: grid;
-  grid-template-columns: minmax(320px, 0.95fr) minmax(420px, 1.15fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.card {
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 20px;
-}
-
-.form-card {
-  align-self: start;
-}
-
-.table-card {
-  align-self: start;
-}
-
-.form-card h2,
-.table-card h2 {
-  margin-top: 0;
-}
-
+/* 4. Skjema (Form) styling */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -285,14 +283,16 @@ onMounted(async () => {
 .form-group label {
   font-weight: 600;
   margin-bottom: 6px;
+  color: #374151;
 }
 
 .form-group input,
 .form-group select {
-  padding: 10px 12px;
+  padding: 12px;
   border: 1px solid #d8dce2;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 1rem; /* Hindrer auto-zoom på iPhone */
+  width: 100%;
 }
 
 .rule-box {
@@ -301,10 +301,11 @@ onMounted(async () => {
   background: #f8fafc;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+  font-size: 0.9rem;
 }
 
 .rule-box p {
-  margin: 0;
+  margin: 4px 0;
 }
 
 .separator {
@@ -312,11 +313,13 @@ onMounted(async () => {
   color: #999;
 }
 
+/* 5. Statusmeldinger */
 .status-box {
   margin-bottom: 16px;
   padding: 12px;
   border-radius: 8px;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .status-box.ok {
@@ -331,32 +334,24 @@ onMounted(async () => {
   border: 1px solid #fecdca;
 }
 
-.error-message {
-  color: #b42318;
-  margin-bottom: 12px;
-  font-weight: 600;
-}
+.error-message { color: #b42318; margin-bottom: 12px; font-weight: 600; font-size: 0.9rem; }
+.success-message { color: #067647; margin-bottom: 12px; font-weight: 600; font-size: 0.9rem; }
 
-.success-message {
-  color: #067647;
-  margin-bottom: 12px;
-  font-weight: 600;
-}
-
+/* 6. Knapper */
 .primary-btn {
   background: #2563eb;
   color: white;
   border: none;
-  padding: 12px 16px;
+  padding: 14px 16px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+  width: 100%;
+  transition: background 0.2s;
 }
 
-.primary-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+.primary-btn:hover { background: #1d4ed8; }
+.primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .secondary-btn {
   background: #f3f4f6;
@@ -368,10 +363,17 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.secondary-btn:hover {
-  background: #e5e7eb;
+.back-btn {
+  background: transparent;
+  color: #1f2937;
+  border: 1px solid #d1d5db;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
+/* 7. Tabell (Desktop) */
 .table-header {
   display: flex;
   justify-content: space-between;
@@ -380,51 +382,73 @@ onMounted(async () => {
   margin-bottom: 16px;
 }
 
-.table-wrapper {
-  overflow-x: auto;
-}
-
-.top-actions {
-  margin-bottom: 16px;
-}
-
-.back-btn {
-  background: transparent;
-  color: #1f2937;
-  border: 1px solid #d1d5db;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.back-btn:hover {
-  background: #f3f4f6;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
 }
 
-th,
-td {
+th, td {
   text-align: left;
   padding: 12px;
   border-bottom: 1px solid #eceff3;
+  font-size: 0.9rem;
 }
 
 .deviation-row {
   background: #fff5f5;
 }
 
-@media (max-width: 900px) {
-  .temperature-grid {
-    grid-template-columns: 1fr;
-  }
+/* 8. Responsivitet (Media Queries) */
+.desktop-only { display: block; }
+.mobile-only { display: none; }
 
+@media (max-width: 1024px) {
+  .temperature-grid {
+    grid-template-columns: 1fr; /* Stabler form og tabell på hverandre */
+  }
+}
+
+@media (max-width: 600px) {
   .temperature-page {
     padding: 16px;
+  }
+
+  .page-header h1 { font-size: 1.5rem; }
+
+  .desktop-only { display: none; }
+  .mobile-only { display: block; }
+
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .secondary-btn { width: 100%; margin-top: 8px; }
+
+  /* Mini-kort for siste målinger på mobil */
+  .latest-logs-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .mini-log-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+
+  .mini-log-card strong { color: #111827; }
+  .mini-log-card small { color: #6b7280; }
+
+  .mini-dev {
+    border-left: 4px solid #dc2626;
+    background: #fef2f2;
   }
 }
 </style>

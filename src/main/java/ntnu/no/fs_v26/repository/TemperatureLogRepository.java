@@ -1,6 +1,7 @@
 package ntnu.no.fs_v26.repository;
 
 import ntnu.no.fs_v26.model.TemperatureLog;
+import ntnu.no.fs_v26.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -30,4 +31,6 @@ public interface TemperatureLogRepository extends JpaRepository<TemperatureLog, 
             Long organizationId,
             LocalDateTime start,
             LocalDateTime end);
+
+    boolean existsByLoggedBy(User user);
 }

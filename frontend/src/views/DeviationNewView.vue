@@ -6,12 +6,12 @@
       <div class="form-group">
         <label for="title">Title *</label>
         <input
-          id="title"
-          v-model="form.title"
-          type="text"
-          placeholder="Short description of the deviation"
+            id="title"
+            v-model="form.title"
+            type="text"
+            placeholder="Short description of the deviation"
         />
-        <span v-if="errors.title" class="error">{{errors.title}}</span>
+        <span v-if="errors.title" class="error">{{ errors.title }}</span>
       </div>
 
       <div class="form-group">
@@ -27,20 +27,20 @@
       <div class="form-group">
         <label for="description">Description</label>
         <textarea
-          id="description"
-          v-model="form.description"
-          rows="4"
-          placeholder="Describe the deviation in detail"
+            id="description"
+            v-model="form.description"
+            rows="4"
+            placeholder="Describe the deviation in detail"
         />
       </div>
 
-      <div v-if="submitError" class="error submit-error">{{ submitError }}</div>
+      <div v-if="submitError" class="error-banner">{{ submitError }}</div>
 
-      <div class="form-actions">
+      <LoadingSpinner v-if="loading" message="Submitting..." />
+
+      <div v-else class="form-actions">
         <button type="button" class="btn-secondary" @click="router.push('/deviations')">Cancel</button>
-        <button type="submit" class="btn-primary" :disabled="loading">
-          {{ loading ? 'Submitting...' : 'Report deviation' }}
-        </button>
+        <button type="submit" class="btn-primary">Report deviation</button>
       </div>
     </form>
   </div>
@@ -50,6 +50,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import deviationApi from '@/api/deviation'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter()
 
@@ -145,7 +146,12 @@ textarea:focus {
   font-size: 0.85rem;
 }
 
-.submit-error {
+.error-banner {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 6px;
   font-weight: 600;
 }
 
@@ -165,11 +171,6 @@ textarea:focus {
   font-size: 1rem;
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .btn-secondary {
   background: white;
   color: #2c3e50;
@@ -182,6 +183,30 @@ textarea:focus {
 
 .btn-secondary:hover {
   border-color: #2563eb;
+}
+@media (max-width: 768px) {
+  .deviation-new {
+    margin: 16px auto;
+    padding: 0 16px;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    width: 100%;
+    text-align: center;
+  }
 }
 </style>
 

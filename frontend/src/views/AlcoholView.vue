@@ -7,222 +7,244 @@
       </div>
     </div>
 
-    <div class="tab-bar">
-      <button
-        class="tab-button"
-        :class="{ active: activeTab === 'register' }"
-        @click="activeTab = 'register'"
-      >
-        Registration
-      </button>
+    <LoadingSpinner v-if="initialLoading" message="Loading..." />
 
-      <button
-        class="tab-button"
-        :class="{ active: activeTab === 'history' }"
-        @click="activeTab = 'history'"
-      >
-        Current Shift History
-      </button>
-    </div>
+    <template v-else>
+      <div class="tab-bar">
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'register' }"
+          @click="activeTab = 'register'"
+        >
+          Registration
+        </button>
 
-    <div v-if="errorMessage" class="alert error">
-      {{ errorMessage }}
-    </div>
+        <button
+          class="tab-button"
+          :class="{ active: activeTab === 'history' }"
+          @click="activeTab = 'history'"
+        >
+          Current Shift History
+        </button>
+      </div>
 
-    <div v-if="successMessage" class="alert success">
-      {{ successMessage }}
-    </div>
+      <div v-if="errorMessage" class="alert error">
+        {{ errorMessage }}
+      </div>
 
-    <section v-if="activeTab === 'register'" class="card">
-      <h2>New Alcohol Registration</h2>
+      <div v-if="successMessage" class="alert success">
+        {{ successMessage }}
+      </div>
 
-      <form class="form-grid" @submit.prevent="submitLog">
-        <div class="form-group">
-          <label for="type">Log type</label>
-          <select id="type" v-model="form.type" required>
-            <option value="AGE_CHECK">Age check</option>
-            <option value="SERVING_START">Serving start</option>
-            <option value="SERVING_END">Serving end</option>
-            <option value="BREAK">Break</option>
-            <option value="INCIDENT">Incident</option>
-          </select>
-        </div>
+      <section v-if="activeTab === 'register'" class="card">
+        <h2>New Alcohol Registration</h2>
 
-        <div class="form-group">
-          <label for="recordedTime">Time</label>
-          <input id="recordedTime" v-model="form.recordedTime" type="time" required />
-          <p v-if="fieldErrors.recordedTime" class="field-error">
-            {{ fieldErrors.recordedTime }}
-          </p>
-        </div>
+        <form class="form-grid" @submit.prevent="submitLog">
+          <div class="form-group">
+            <label for="type">Log type</label>
+            <select id="type" v-model="form.type" required>
+              <option value="AGE_CHECK">Age check</option>
+              <option value="SERVING_START">Serving start</option>
+              <option value="SERVING_END">Serving end</option>
+              <option value="BREAK">Break</option>
+              <option value="INCIDENT">Incident</option>
+            </select>
+          </div>
 
-        <div v-if="form.type === 'AGE_CHECK'" class="full-width conditional-section">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="guestAge">Guest age</label>
-              <input id="guestAge" v-model.number="form.guestAge" type="number" min="0" max="90" />
-              <p v-if="fieldErrors.guestAge" class="field-error">
-                {{ fieldErrors.guestAge }}
-              </p>
+          <div class="form-group">
+            <label for="recordedTime">Time</label>
+            <input id="recordedTime" v-model="form.recordedTime" type="time" required />
+            <p v-if="fieldErrors.recordedTime" class="field-error">
+              {{ fieldErrors.recordedTime }}
+            </p>
+          </div>
+
+          <div v-if="form.type === 'AGE_CHECK'" class="full-width conditional-section">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="guestAge">Guest age</label>
+                <input
+                  id="guestAge"
+                  v-model.number="form.guestAge"
+                  type="number"
+                  min="0"
+                  max="90"
+                />
+                <p v-if="fieldErrors.guestAge" class="field-error">
+                  {{ fieldErrors.guestAge }}
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="alcoholPercentage">Alcohol percentage</label>
+                <input
+                  id="alcoholPercentage"
+                  v-model.number="form.alcoholPercentage"
+                  type="number"
+                  min="0"
+                  max="60"
+                  step="0.1"
+                />
+                <p v-if="fieldErrors.alcoholPercentage" class="field-error">
+                  {{ fieldErrors.alcoholPercentage }}
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="idChecked">ID checked</label>
+                <select id="idChecked" v-model="form.idChecked">
+                  <option :value="null" disabled>Select an option</option>
+                  <option :value="true">Yes</option>
+                  <option :value="false">No</option>
+                </select>
+                <p v-if="fieldErrors.idChecked" class="field-error">
+                  {{ fieldErrors.idChecked }}
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="serviceDenied">Service denied</label>
+                <select id="serviceDenied" v-model="form.serviceDenied">
+                  <option :value="null" disabled>Select an option</option>
+                  <option :value="true">Yes</option>
+                  <option :value="false">No</option>
+                </select>
+                <p v-if="fieldErrors.serviceDenied" class="field-error">
+                  {{ fieldErrors.serviceDenied }}
+                </p>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="alcoholPercentage">Alcohol percentage</label>
-              <input
-                id="alcoholPercentage"
-                v-model.number="form.alcoholPercentage"
-                type="number"
-                min="0"
-                max="60"
-                step="0.1"
+            <div v-if="showAgeCheckNotes" class="form-group full-width">
+              <label for="ageCheckNotes">{{ ageCheckNotesLabel }}</label>
+              <textarea
+                id="ageCheckNotes"
+                v-model="form.notes"
+                rows="4"
+                :placeholder="ageCheckNotesPlaceholder"
               />
-              <p v-if="fieldErrors.alcoholPercentage" class="field-error">
-                {{ fieldErrors.alcoholPercentage }}
+              <p v-if="fieldErrors.notes" class="field-error">
+                {{ fieldErrors.notes }}
               </p>
             </div>
 
-            <div class="form-group">
-              <label for="idChecked">ID checked</label>
-              <select id="idChecked" v-model="form.idChecked">
-                <option :value="null" disabled>Select an option</option>
-                <option :value="true">Yes</option>
-                <option :value="false">No</option>
-              </select>
-              <p v-if="fieldErrors.idChecked" class="field-error">
-                {{ fieldErrors.idChecked }}
-              </p>
-            </div>
-
-            <div class="form-group">
-              <label for="serviceDenied">Service denied</label>
-              <select id="serviceDenied" v-model="form.serviceDenied">
-                <option :value="null" disabled>Select an option</option>
-                <option :value="true">Yes</option>
-                <option :value="false">No</option>
-              </select>
-              <p v-if="fieldErrors.serviceDenied" class="field-error">
-                {{ fieldErrors.serviceDenied }}
+            <div class="law-box">
+              <strong>Age control rules</strong>
+              <p>
+                Guests must be at least 18 for alcohol below 22% and at least 20 for alcohol at 22%
+                or above. If service is not legally allowed, it must be denied.
               </p>
             </div>
           </div>
 
-          <div v-if="showAgeCheckNotes" class="form-group full-width">
-            <label for="ageCheckNotes">{{ ageCheckNotesLabel }}</label>
+          <div v-if="requiresDenialNotes()" class="form-group full-width">
+            <label for="denialNotes">Reason for denied service</label>
             <textarea
-              id="ageCheckNotes"
+              id="denialNotes"
               v-model="form.notes"
               rows="4"
-              :placeholder="ageCheckNotesPlaceholder"
+              placeholder="Explain why service was denied even though the age requirement was met."
             />
             <p v-if="fieldErrors.notes" class="field-error">
               {{ fieldErrors.notes }}
             </p>
           </div>
 
-          <div class="law-box">
-            <strong>Age control rules</strong>
-            <p>
-              Guests must be at least 18 for alcohol below 22% and at least 20 for alcohol at 22% or
-              above. If service is not legally allowed, it should be denied. If it is still
-              registered, the system can store the event and mark it as a deviation.
+          <div v-if="form.type === 'INCIDENT'" class="form-group full-width">
+            <label for="notes">Incident notes</label>
+            <textarea
+              id="notes"
+              v-model="form.notes"
+              rows="5"
+              placeholder="Describe the incident clearly."
+            />
+            <p v-if="fieldErrors.notes" class="field-error">
+              {{ fieldErrors.notes }}
             </p>
+          </div>
+
+          <div class="info-box full-width">
+            <strong>Recommended usage</strong>
+            <p>
+              Use <em>Age check</em> for ID control routines, <em>Serving start</em> and
+              <em>Serving end</em> for serving hours, <em>Break</em> for pauses in serving, and
+              <em>Incident</em> for alcohol-related deviations or events.
+            </p>
+          </div>
+
+          <div class="actions full-width">
+            <button type="submit" :disabled="isSaving">
+              {{ isSaving ? 'Saving...' : 'Save registration' }}
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section v-else class="card">
+        <div class="history-header">
+          <div>
+            <h2>Current Shift History</h2>
+            <p class="muted-text">Employees can only view alcohol logs for the active shift.</p>
           </div>
         </div>
 
-        <div v-if="form.type === 'INCIDENT'" class="form-group full-width">
-          <label for="notes">Incident notes</label>
-          <textarea
-            id="notes"
-            v-model="form.notes"
-            rows="5"
-            placeholder="Describe the incident clearly."
-          />
-          <p v-if="fieldErrors.notes" class="field-error">
-            {{ fieldErrors.notes }}
-          </p>
+        <div v-if="canSearchHistory" class="manager-tools">
+          <div class="form-group">
+            <label for="historyDate">Search by date</label>
+            <input id="historyDate" v-model="historyDate" type="date" />
+          </div>
+
+          <div class="manager-actions">
+            <button
+              type="button"
+              @click="loadHistoryByDate"
+              :disabled="isLoadingHistory || !historyDate"
+            >
+              Load selected date
+            </button>
+            <button type="button" class="secondary-button" @click="loadHistory">
+              Load current shift
+            </button>
+          </div>
         </div>
 
-        <div class="info-box full-width">
-          <strong>Recommended usage</strong>
-          <p>
-            Use <em>Age check</em> for ID control routines, <em>Serving start</em> and
-            <em>Serving end</em> for serving hours, <em>Break</em> for pauses in serving, and
-            <em>Incident</em> for alcohol-related deviations or events.
-          </p>
-        </div>
+        <LoadingSpinner v-if="isLoadingHistory" message="Loading history..." />
 
-        <div class="actions full-width">
-          <button type="submit" :disabled="isSaving">
-            {{ isSaving ? 'Saving...' : 'Save registration' }}
-          </button>
-        </div>
-      </form>
-    </section>
+        <div v-else-if="history.length === 0" class="empty-state">No alcohol logs found.</div>
 
-    <section v-else class="card">
-      <div class="history-header">
-        <div>
-          <h2>Current Shift History</h2>
-          <p class="muted-text">Employees can only view alcohol logs for the active shift.</p>
-        </div>
-      </div>
-
-      <div v-if="canSearchHistory" class="manager-tools">
-        <div class="form-group">
-          <label for="historyDate">Search by date</label>
-          <input id="historyDate" v-model="historyDate" type="date" />
-        </div>
-
-        <div class="manager-actions">
-          <button
-            type="button"
-            @click="loadHistoryByDate"
-            :disabled="isLoadingHistory || !historyDate"
-          >
-            Load selected date
-          </button>
-          <button type="button" class="secondary-button" @click="loadHistory">
-            Load current shift
-          </button>
-        </div>
-      </div>
-
-      <div v-if="isLoadingHistory" class="loading-state">Loading history...</div>
-
-      <div v-else-if="history.length === 0" class="empty-state">No alcohol logs found.</div>
-
-      <table v-else class="history-table">
-        <thead>
-          <tr>
-            <th>Time</th>
-            <th>Type</th>
-            <th>Notes</th>
-            <th>Recorded by</th>
-            <th v-if="canSearchHistory">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="log in history" :key="log.id">
-            <td>{{ formatTime(log.recordedAt) }}</td>
-            <td>
-              <div class="type-badge-list">
-                <span
-                  v-for="displayType in log.displayTypes"
-                  :key="displayType"
-                  class="type-badge"
-                  :class="badgeClass(displayType)"
-                >
-                  {{ formatType(displayType) }}
-                </span>
-              </div>
-            </td>
-            <td>{{ log.notes || '-' }}</td>
-            <td>{{ log.recordedBy || '-' }}</td>
-            <td v-if="canSearchHistory">{{ formatDate(log.recordedAt) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+        <table v-else class="history-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Type</th>
+              <th>Notes</th>
+              <th>Recorded by</th>
+              <th v-if="canSearchHistory">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="log in history" :key="log.id">
+              <td>{{ formatTime(log.recordedAt) }}</td>
+              <td>
+                <div class="type-badge-list">
+                  <span
+                    v-for="displayType in log.displayTypes"
+                    :key="displayType"
+                    class="type-badge"
+                    :class="badgeClass(displayType)"
+                  >
+                    {{ formatType(displayType) }}
+                  </span>
+                </div>
+              </td>
+              <td>{{ log.notes || '-' }}</td>
+              <td>{{ log.recordedBy || '-' }}</td>
+              <td v-if="canSearchHistory">{{ formatDate(log.recordedAt) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </template>
   </div>
 </template>
 
@@ -230,12 +252,14 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import alcoholApi from '@/api/alcohol'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const authStore = useAuthStore()
 
 const activeTab = ref('register')
 const isSaving = ref(false)
 const isLoadingHistory = ref(false)
+const initialLoading = ref(true)
 const errorMessage = ref('')
 const successMessage = ref('')
 const history = ref([])
@@ -446,6 +470,9 @@ function normalizeText(value) {
 /**
  * Groups age-check and incident logs into one visual history row
  * when they represent the same denied-service event.
+ *
+ * @param {Array} logs - Raw alcohol log history from the backend.
+ * @returns {Array} Grouped log entries for display.
  */
 function groupHistoryLogs(logs) {
   const grouped = []
@@ -573,6 +600,8 @@ async function loadHistory() {
 
 /**
  * Loads alcohol logs for a selected date.
+ *
+ * @returns {Promise<void>}
  */
 async function loadHistoryByDate() {
   if (!canSearchHistory.value || !historyDate.value) return
@@ -680,6 +709,7 @@ watch(activeTab, async (newTab) => {
  */
 onMounted(async () => {
   await loadHistory()
+  initialLoading.value = false
 })
 </script>
 
@@ -841,7 +871,6 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-.loading-state,
 .empty-state {
   color: #6b7280;
   padding: 14px 0;

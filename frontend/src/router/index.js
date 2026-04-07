@@ -73,12 +73,27 @@ const router = createRouter({
       },
     },
     {
+      path: '/manage-checklists',
+      name: 'manage-checklists',
+      component: () => import('../views/ManageChecklistsView.vue'),
+      meta: { requiresAuth: true, role: 'MANAGER' }
+    },
+    {
       path: '/deviations/new',
       name: 'deviation-new',
       component: () => import('../views/DeviationNewView.vue'),
       meta: {
         requiresAuth: true,
         roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../views/AdminView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['ADMIN'],
       },
     },
     // for later if we want a specific dashboard path pointing to the same place
@@ -92,8 +107,21 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
 
+<<<<<<< HEAD
   if (to.meta.requiresAuth && !authStore.token) {
     return next('/login')
+=======
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+
+  if (requiresAuth && !authStore.isLoggedIn) {
+    next('/login')
+  } else if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
+    next('/')
+  } else if (to.meta.roles && !to.meta.roles.includes(authStore.getUserRole)) {
+    next('/')
+  } else {
+    next()
+>>>>>>> 335734ccb015cfd6ba6b2821ccafa8bde791bc9e
   }
 
   if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {

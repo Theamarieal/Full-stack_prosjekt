@@ -10,161 +10,143 @@
         </p>
       </div>
 
-      <div v-if="canViewReports" class="manager-tools-section">
-        <h2>Management</h2>
-
-        <div class="stats-grid">
-          <div class="stat-card clickable-card" @click="goToReports">
-            <div class="card-header">
-              <h3>Reports</h3>
-              <span class="card-link">Open</span>
-            </div>
-
-            <p class="card-description">
-              Generate compliance reports for deviations, temperature logs, and alcohol logs.
-            </p>
-
-            <p class="ok-text">Available to managers and administrators</p>
-          </div>
-        </div>
-      </div>
-
       <div class="sections-grid">
         <section class="module-section">
           <h2>IK-Mat</h2>
 
-          <div class="stats-grid">
-            <div
-              class="stat-card clickable-card"
-              :class="{ warning: hasTemperatureDeviations }"
-              @click="goToTemperature"
-            >
-              <div class="card-header">
-                <h3>Temperature</h3>
-                <span class="card-link">Open</span>
-              </div>
-
-              <p class="card-description">
-                View measurements and deviations for fridges, freezers, and other equipment.
-              </p>
-
-              <div v-if="temperatureSummary" class="status-list">
-                <div class="status-item">
-                  <span>Measurements today</span>
-                  <strong>{{ temperatureSummary.measurementsToday }}</strong>
-                </div>
-
-                <div class="status-item">
-                  <span>Deviations today</span>
-                  <strong :class="{ 'warning-text': temperatureSummary.deviationsToday > 0 }">
-                    {{ temperatureSummary.deviationsToday }}
-                  </strong>
-                </div>
-              </div>
-
-              <div v-if="latestTemperatureDeviation" class="latest-deviation-box">
-                <p class="latest-deviation-title">Latest deviation</p>
-                <p>
-                  <strong>
-                    {{ latestTemperatureDeviation.equipment?.name || 'Unknown equipment' }}
-                  </strong>
-                </p>
-                <p>{{ latestTemperatureDeviation.value }} °C</p>
-                <p class="small-text">
-                  {{ formatDate(latestTemperatureDeviation.timestamp) }}
-                </p>
-              </div>
-
-              <p
-                v-if="temperatureSummary && temperatureSummary.deviationsToday === 0"
-                class="ok-text"
+            <div class="stats-grid">
+              <div
+                class="stat-card clickable-card"
+                :class="{ warning: hasTemperatureDeviations }"
+                @click="goToTemperature"
               >
-                No temperature deviations registered today
-              </p>
-            </div>
+                <div class="card-header">
+                  <h3>Temperature</h3>
+                  <span class="card-link">Open</span>
+                </div>
 
-            <div class="stat-card clickable-card" @click="router.push('/deviations?module=IK_MAT')">
-              <h3>Deviations</h3>
-              <div class="deviation-header">
-                <span v-if="matDeviations > 0" class="badge">{{ matDeviations }}</span>
+                <p class="card-description">
+                  View measurements and deviations for fridges, freezers, and other equipment.
+                </p>
+
+                <div v-if="temperatureSummary" class="status-list">
+                  <div class="status-item">
+                    <span>Measurements today</span>
+                    <strong>{{ temperatureSummary.measurementsToday }}</strong>
+                  </div>
+
+                  <div class="status-item">
+                    <span>Deviations today</span>
+                    <strong :class="{ 'warning-text': temperatureSummary.deviationsToday > 0 }">
+                      {{ temperatureSummary.deviationsToday }}
+                    </strong>
+                  </div>
+                </div>
+
+                <div v-if="latestTemperatureDeviation" class="latest-deviation-box">
+                  <p class="latest-deviation-title">Latest deviation</p>
+                  <p>
+                    <strong>
+                      {{ latestTemperatureDeviation.equipment?.name || 'Unknown equipment' }}
+                    </strong>
+                  </p>
+                  <p>{{ latestTemperatureDeviation.value }} °C</p>
+                  <p class="small-text">
+                    {{ formatDate(latestTemperatureDeviation.timestamp) }}
+                  </p>
+                </div>
+
+                <p
+                  v-if="temperatureSummary && temperatureSummary.deviationsToday === 0"
+                  class="ok-text"
+                >
+                  No temperature deviations registered today
+                </p>
               </div>
-              <p v-if="matDeviations > 0" class="warning-text">Open deviations</p>
-              <p v-else class="ok-text">No open deviations ✓</p>
-            </div>
 
-            <div class="stat-card clickable-card" @click="router.push('/checklists')">
-              <h3>Checklists</h3>
-              <p v-if="matStats.total === 0">No checklists found.</p>
-              <p v-else>
-                <span class="stat-number">{{ matStats.completed }}</span> / {{ matStats.total }}
-                completed
-              </p>
-              <p v-if="matStats.remaining > 0" class="warning-text">
-                {{ matStats.remaining }} tasks remaining ⚠️
-              </p>
-              <p v-else-if="matStats.total > 0" class="ok-text">All done ✓</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="module-section">
-          <h2>IK-Alcohol</h2>
-
-          <div class="stats-grid">
-            <div
-              class="stat-card clickable-card"
-              :class="{ warning: alcoholStatus === false || alcoholWarning }"
-              @click="goToAlcohol"
-            >
-              <div class="card-header">
-                <h3>Alcohol</h3>
-                <span class="card-link">Open</span>
+              <div class="stat-card clickable-card" @click="router.push('/deviations?module=IK_MAT')">
+                <h3>Deviations</h3>
+                <div class="deviation-header">
+                  <span v-if="matDeviations > 0" class="badge">{{ matDeviations }}</span>
+                </div>
+                <p v-if="matDeviations > 0" class="warning-text">Open deviations</p>
+                <p v-else class="ok-text">No open deviations ✓</p>
               </div>
 
-              <p class="card-description">
-                Register age checks, serving events, and incidents for the current shift.
-              </p>
-
-              <p v-if="alcoholStatus === false" class="warning-text">
-                No alcohol registration for today
-              </p>
-
-              <p v-else-if="alcoholStatus === true" class="ok-text">
-                Registrations found for today
-              </p>
-
-              <p v-if="alcoholWarning" class="warning-text">
-                {{ alcoholWarning }}
-              </p>
-            </div>
-
-            <div
-              class="stat-card clickable-card"
-              @click="router.push('/deviations?module=IK_ALKOHOL')"
-            >
-              <h3>Deviations</h3>
-              <div class="deviation-header">
-                <span v-if="alcoholDeviations > 0" class="badge">{{ alcoholDeviations }}</span>
+              <div class="stat-card clickable-card" @click="router.push('/checklists')">
+                <h3>Checklists</h3>
+                <p v-if="matStats.total === 0">No checklists found.</p>
+                <p v-else>
+                  <span class="stat-number">{{ matStats.completed }}</span> / {{ matStats.total }}
+                  completed
+                </p>
+                <p v-if="matStats.remaining > 0" class="warning-text">
+                  {{ matStats.remaining }} tasks remaining ⚠️
+                </p>
+                <p v-else-if="matStats.total > 0" class="ok-text">All done ✓</p>
               </div>
-              <p v-if="alcoholDeviations > 0" class="warning-text">Open deviations</p>
-              <p v-else class="ok-text">No open deviations ✓</p>
             </div>
+          </section>
 
-            <div class="stat-card clickable-card" @click="router.push('/checklists')">
-              <h3>Checklists</h3>
-              <p v-if="alcoholStats.total === 0">No checklists found.</p>
-              <p v-else>
-                <span class="stat-number">{{ alcoholStats.completed }}</span> /
-                {{ alcoholStats.total }} completed
-              </p>
-              <p v-if="alcoholStats.remaining > 0" class="warning-text">
-                {{ alcoholStats.remaining }} tasks remaining ⚠️
-              </p>
-              <p v-else-if="alcoholStats.total > 0" class="ok-text">All done ✓</p>
+          <section class="module-section">
+            <h2>IK-Alcohol</h2>
+
+            <div class="stats-grid">
+              <div
+                class="stat-card clickable-card"
+                :class="{ warning: alcoholStatus === false || alcoholWarning }"
+                @click="goToAlcohol"
+              >
+                <div class="card-header">
+                  <h3>Alcohol</h3>
+                  <span class="card-link">Open</span>
+                </div>
+
+                <p class="card-description">
+                  Register age checks, serving events, and incidents for the current shift.
+                </p>
+
+                <p v-if="alcoholStatus === false" class="warning-text">
+                  No alcohol registration for today
+                </p>
+
+                <p v-else-if="alcoholStatus === true" class="ok-text">
+                  Registrations found for today
+                </p>
+
+                <p v-if="alcoholWarning" class="warning-text">
+                  {{ alcoholWarning }}
+                </p>
+              </div>
+
+              <div
+                class="stat-card clickable-card"
+                @click="router.push('/deviations?module=IK_ALKOHOL')"
+              >
+                <h3>Deviations</h3>
+                <div class="deviation-header">
+                  <span v-if="alcoholDeviations > 0" class="badge">{{ alcoholDeviations }}</span>
+                </div>
+                <p v-if="alcoholDeviations > 0" class="warning-text">Open deviations</p>
+                <p v-else class="ok-text">No open deviations ✓</p>
+              </div>
+
+              <div class="stat-card clickable-card" @click="router.push('/checklists')">
+                <h3>Checklists</h3>
+                <p v-if="alcoholStats.total === 0">No checklists found.</p>
+                <p v-else>
+                  <span class="stat-number">{{ alcoholStats.completed }}</span> /
+                  {{ alcoholStats.total }} completed
+                </p>
+                <p v-if="alcoholStats.remaining > 0" class="warning-text">
+                  {{ alcoholStats.remaining }} tasks remaining ⚠️
+                </p>
+                <p v-else-if="alcoholStats.total > 0" class="ok-text">All done ✓</p>
+              </div>
             </div>
-          </div>
-        </section>
-      </div>
+          </section>
+        </div>
+      </template>
     </main>
   </div>
 </template>
@@ -177,16 +159,18 @@ import alcoholApi from '@/api/alcohol'
 import temperatureApi from '@/api/temperature'
 import checklistApi from '@/api/checklist'
 import deviationApi from '@/api/deviation'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
+const loading = ref(true)
+const error = ref('')
+
 const alcoholStatus = ref(null)
 const alcoholWarning = ref('')
-
 const temperatureSummary = ref(null)
 const latestTemperatureDeviations = ref([])
-
 const checklists = ref([])
 const deviations = ref([])
 
@@ -211,7 +195,6 @@ const alcoholDeviations = computed(
 )
 
 const matChecklists = computed(() => checklists.value.filter((c) => c.module !== 'BAR'))
-
 const alcoholChecklists = computed(() => checklists.value.filter((c) => c.module === 'BAR'))
 
 const matStats = computed(() => {
@@ -237,8 +220,8 @@ async function loadAlcoholStatus() {
   try {
     const res = await alcoholApi.getAlcoholStatus()
     alcoholStatus.value = res.data.hasLogs
-  } catch (error) {
-    console.error('Failed to load alcohol status:', error)
+  } catch (e) {
+    console.error('Failed to load alcohol status:', e)
   }
 }
 
@@ -246,14 +229,13 @@ async function loadAlcoholWarning() {
   try {
     const shiftId = 1
     const response = await alcoholApi.getMissingRegistrationWarning(shiftId)
-
     if (response.data.missing) {
       alcoholWarning.value = response.data.message
     } else {
       alcoholWarning.value = ''
     }
-  } catch (error) {
-    console.error('Failed to load alcohol warning:', error)
+  } catch (e) {
+    console.error('Failed to load alcohol warning:', e)
   }
 }
 
@@ -261,15 +243,15 @@ async function loadTemperatureData() {
   try {
     const summaryResponse = await temperatureApi.getTemperatureSummary()
     temperatureSummary.value = summaryResponse.data
-  } catch (error) {
-    console.error('Failed to load temperature summary:', error)
+  } catch (e) {
+    console.error('Failed to load temperature summary:', e)
   }
 
   try {
     const deviationsResponse = await temperatureApi.getLatestDeviations(5)
     latestTemperatureDeviations.value = deviationsResponse.data
-  } catch (error) {
-    console.error('Failed to load latest temperature deviations:', error)
+  } catch (e) {
+    console.error('Failed to load latest temperature deviations:', e)
   }
 }
 
@@ -286,20 +268,25 @@ async function goToReports() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadAlcoholStatus(), loadAlcoholWarning(), loadTemperatureData()])
-
   try {
-    const res = await deviationApi.getAll()
-    deviations.value = Array.isArray(res.data) ? res.data : []
-  } catch (e) {
-    console.error('Failed to load deviations', e)
-  }
+    await Promise.all([
+      loadAlcoholStatus(),
+      loadAlcoholWarning(),
+      loadTemperatureData()
+    ])
 
-  try {
-    const res = await checklistApi.getAll()
-    checklists.value = Array.isArray(res.data) ? res.data : []
+    const [deviationRes, checklistRes] = await Promise.all([
+      deviationApi.getAll(),
+      checklistApi.getAll()
+    ])
+
+    deviations.value = Array.isArray(deviationRes.data) ? deviationRes.data : []
+    checklists.value = Array.isArray(checklistRes.data) ? checklistRes.data : []
   } catch (e) {
-    console.error('Failed to load checklists', e)
+    error.value = 'Failed to load dashboard data.'
+    console.error(e)
+  } finally {
+    loading.value = false
   }
 })
 </script>
@@ -315,6 +302,16 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.error-banner {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .welcome-card {

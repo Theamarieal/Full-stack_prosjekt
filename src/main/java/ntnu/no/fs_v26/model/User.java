@@ -36,9 +36,13 @@ public class User implements UserDetails {
   @Column(nullable = false)
   private Role role;
 
+  @Column(nullable = false)
+  @Builder.Default
+  private boolean active = true;
+
   @ManyToOne
-  @JoinColumn(name = "organization_id", nullable = true) // make this true now
-  @com.fasterxml.jackson.annotation.JsonIgnore // stops infinite loop
+  @JoinColumn(name = "organization_id", nullable = true)
+  @com.fasterxml.jackson.annotation.JsonIgnore
   private Organization organization;
 
   @Column(name = "created_at")
@@ -51,7 +55,6 @@ public class User implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    // make the enum-role to an authority Spring understands (f.eks "ROLE_ADMIN")
     return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
   }
 
@@ -77,7 +80,7 @@ public class User implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return active;
   }
 
   @Override

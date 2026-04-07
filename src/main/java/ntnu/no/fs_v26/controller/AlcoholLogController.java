@@ -1,5 +1,6 @@
 package ntnu.no.fs_v26.controller;
 
+import jakarta.validation.Valid;
 import ntnu.no.fs_v26.service.AlcoholLogService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class AlcoholLogController {
      */
     @PostMapping
     public ResponseEntity<AlcoholLogResponse> createLog(
-            @RequestBody AlcoholLogRequest request,
+            @Valid @RequestBody AlcoholLogRequest request,
             Authentication authentication) {
         return ResponseEntity.ok(alcoholLogService.createLog(request, authentication.getName()));
     }
@@ -58,8 +59,7 @@ public class AlcoholLogController {
     /**
      * Returns alcohol logs for a specific date.
      *
-     * <p>
-     * This endpoint is intended for managers and administrators.
+     * <p>This endpoint is intended for managers and administrators.
      *
      * @param date           the date to search for
      * @param authentication the current authentication object
@@ -81,8 +81,6 @@ public class AlcoholLogController {
     @GetMapping("/status")
     public ResponseEntity<?> getTodayStatus(Authentication authentication) {
         boolean hasLogs = alcoholLogService.hasLogsForToday(authentication.getName());
-
-        return ResponseEntity.ok(java.util.Map.of(
-                "hasLogs", hasLogs));
+        return ResponseEntity.ok(java.util.Map.of("hasLogs", hasLogs));
     }
 }

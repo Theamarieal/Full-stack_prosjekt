@@ -26,7 +26,9 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading">Loading deviations...</div>
+    <LoadingSpinner v-if="loading" message="Loading deviations..." />
+
+    <div v-else-if="error" class="error-banner">{{ error }}</div>
 
     <div v-else-if="filtered.length === 0" class="empty">
       No deviations found.
@@ -37,11 +39,12 @@
         v-for="deviation in filtered"
         :key="deviation.id"
         class="deviation-card"
-        :class="statusClass(deviation.status)">
+        :class="statusClass(deviation.status)"
+      >
         <div class="card-header">
-          <h3>{{deviation.title}}</h3>
+          <h3>{{ deviation.title }}</h3>
           <span class="status-badge" :class="statusClass(deviation.status)">
-            {{formatStatus(deviation.status)}}
+            {{ formatStatus(deviation.status) }}
           </span>
         </div>
 
@@ -52,12 +55,16 @@
           <span v-if="deviation.reportedBy"> by {{ deviation.reportedBy.email }}</span>
         </p>
 
+        <div v-if="updateError === deviation.id" class="error-inline">
+          Failed to update status. Please try again.
+        </div>
+
         <div v-if="isManagerOrAdmin" class="status-actions">
           <label>Update status:</label>
           <select
             :value="deviation.status"
             @change="updateStatus(deviation.id, $event.target.value)"
-            >
+          >
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In progress</option>
             <option value="RESOLVED">Resolved</option>
@@ -69,10 +76,11 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, watch} from 'vue'
-import {useRouter, useRoute} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import deviationApi from '@/api/deviation'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -80,6 +88,8 @@ const authStore = useAuthStore()
 
 const deviations = ref([])
 const loading = ref(true)
+const error = ref('')
+const updateError = ref(null)
 const filterStatus = ref('')
 const filterModule = ref(route.query.module || '')
 
@@ -89,7 +99,7 @@ const isManagerOrAdmin = computed(() => {
 })
 
 const filtered = computed(() => {
-  return deviations.value.filter(d => {
+  return deviations.value.filter((d) => {
     const matchStatus = filterStatus.value ? d.status === filterStatus.value : true
     const matchModule = filterModule.value ? d.module === filterModule.value : true
     return matchStatus && matchModule
@@ -105,18 +115,21 @@ onMounted(async () => {
     const res = await deviationApi.getAll()
     deviations.value = Array.isArray(res.data) ? res.data : []
   } catch (e) {
-    console.error('Failed to load deviations', e)
+    error.value = 'Failed to load deviations.'
+    console.error(e)
   } finally {
     loading.value = false
   }
 })
 
 async function updateStatus(id, newStatus) {
+  updateError.value = null
   try {
     const res = await deviationApi.updateStatus(id, newStatus)
-    const index = deviations.value.findIndex(d => d.id === id)
+    const index = deviations.value.findIndex((d) => d.id === id)
     if (index !== -1) deviations.value[index] = res.data
   } catch (e) {
+    updateError.value = id
     console.error('Failed to update status', e)
   }
 }
@@ -144,7 +157,9 @@ function formatModule(module) {
 function formatDate(dateStr) {
   if (!dateStr) return ''
   return new Date(dateStr).toLocaleDateString('no-NO', {
-    year: 'numeric', month: 'short', day: 'numeric'
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   })
 }
 </script>
@@ -155,6 +170,7 @@ function formatDate(dateStr) {
   margin: 40px auto;
   padding: 0 20px;
 }
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -269,6 +285,22 @@ select {
   margin-bottom: 12px;
 }
 
+.error-banner {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.error-inline {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
 .status-actions {
   display: flex;
   align-items: center;
@@ -284,7 +316,6 @@ select {
   color: #2c3e50;
 }
 
-.loading,
 .empty {
   text-align: center;
   color: #6b7280;
@@ -303,5 +334,48 @@ select {
 
 .btn-primary:hover {
   background: #1d4ed8;
+}
+@media (max-width: 768px) {
+  .deviation-list {
+    padding: 0 16px;
+    margin: 16px auto;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  select,
+  .filter-group select {
+    min-height: 44px;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .btn-primary {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .status-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .status-actions select {
+    min-height: 44px;
+  }
 }
 </style>
