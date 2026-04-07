@@ -21,7 +21,7 @@ public interface AlcoholLogRepository extends JpaRepository<AlcoholLog, Long> {
             Long organizationId,
             LocalDateTime from,
             LocalDateTime to
-    );  
+    );
 
-    existsByRecordedBy(User user);
-} 
+    boolean existsByRecordedBy(User user);
+}
