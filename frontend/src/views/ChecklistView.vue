@@ -149,7 +149,7 @@ onMounted(loadChecklists)
 
 .checklists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
 }
 
@@ -207,6 +207,47 @@ onMounted(loadChecklists)
   text-align: center;
   color: #6b7280;
   padding: 40px;
+}
+@media (max-width: 768px) {
+  .checklist {
+    padding: 16px;
+  }
+
+  .checklist-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .back-btn {
+    min-height: 44px;
+    padding: 0 16px;
+    width: 100%;
+  }
+
+  .filter-bar {
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    min-height: 44px;
+    padding: 0 16px;
+    flex: 1;
+  }
+
+  .checklists-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .checklist-item {
+    gap: 14px;
+  }
+
+  .checklist-item input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
 }
 </style>
 

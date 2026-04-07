@@ -95,82 +95,90 @@ const handleRegister = async () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  min-height: 100vh;
+  background-color: #f7f6f2;
+  padding: 12px;
 }
 
 .register-container {
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   width: 100%;
-  max-width: 400px;
+  max-width: 440px;
+  padding: 2rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #e0dfd8;
 }
 
 h2 {
-  margin-bottom: 0.5rem;
   text-align: center;
+  color: #3C3489;
+  margin-bottom: 4px;
 }
 
 .subtitle {
   text-align: center;
   color: #666;
+  font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
 
 .form-group {
   margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
 }
 
 label {
-  margin-bottom: 0.3rem;
-  font-weight: bold;
-  font-size: 0.9rem;
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
 }
 
 input, select {
-  padding: 0.6rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 1rem;
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e0dfd8;
+  border-radius: 10px;
+  font-size: 16px;
 }
 
 button {
   width: 100%;
-  padding: 0.8rem;
+  padding: 14px;
   background-color: #4CAF50;
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
+  border-radius: 10px;
+  font-weight: 700;
   margin-top: 1rem;
-}
-
-button:disabled {
-  background-color: #ccc;
-}
-
-.error-message {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 0.5rem;
-  border-radius: 4px;
-  margin-top: 1rem;
-  text-align: center;
 }
 
 .footer-links {
-  margin-top: 1.5rem;
   text-align: center;
-  font-size: 0.9rem;
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
 }
 
-a {
-  color: #4CAF50;
-  text-decoration: none;
-  font-weight: bold;
+@media (max-width: 350px) {
+  .login-page, .register-wrapper {
+    padding: 0;
+    background: white; 
+    align-items: flex-start; 
+  }
+
+  .login-card, .register-container {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 2rem 1.5rem;
+    
+    min-height: 100vh; 
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .footer-links, .footer-link {
+    margin-top: auto; 
+    padding-bottom: 2rem;
+  }
 }
 </style>

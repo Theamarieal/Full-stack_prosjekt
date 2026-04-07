@@ -335,4 +335,47 @@ select {
 .btn-primary:hover {
   background: #1d4ed8;
 }
+@media (max-width: 768px) {
+  .deviation-list {
+    padding: 0 16px;
+    margin: 16px auto;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .filters {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  select,
+  .filter-group select {
+    min-height: 44px;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  .btn-primary {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .status-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .status-actions select {
+    min-height: 44px;
+  }
+}
 </style>

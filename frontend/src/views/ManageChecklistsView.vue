@@ -169,4 +169,22 @@ textarea { width: 100%; height: 80px; margin-bottom: 15px; }
 
 .badge { background: #e8f5e9; color: #2e7d32; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
 .empty-state { text-align: center; color: #999; padding: 40px; font-style: italic; }
+@media (max-width: 768px) {
+  .manage-checklists {
+    padding: 16px;
+    margin: 0;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  button[type="submit"] {
+    min-height: 44px;
+    width: 100%;
+  }
+}
 </style>
