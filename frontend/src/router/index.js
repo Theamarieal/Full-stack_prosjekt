@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+
 import TemperatureView from '@/views/TemperatureView.vue'
 import TemperatureHistoryView from '@/views/TemperatureHistoryView.vue'
 
@@ -10,21 +11,46 @@ const router = createRouter({
       path: '/temperature',
       name: 'temperature',
       component: TemperatureView,
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
     },
     {
       path: '/temperature-history',
       name: 'temperature-history',
       component: TemperatureHistoryView,
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
     },
     {
       path: '/login',
       name: 'login',
-      component: () => import('../views/LoginView.vue'),
+      component: () => import('@/views/LoginView.vue'),
     },
     {
       path: '/register',
       name: 'register',
-      component: () => import('../views/RegisterView.vue'),
+      component: () => import('@/views/RegisterView.vue'),
+    },
+    {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('@/views/ReportView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['MANAGER', 'ADMIN'],
+      },
+    },
+    {
+      path: '/',
+      name: 'dashboard',
+      component: () => import('@/views/DashboardView.vue'),
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/training',
@@ -36,33 +62,14 @@ const router = createRouter({
       },
     },
     {
-      path: '/reports',
-      name: 'reports',
-      component: () => import('@/views/ReportView.vue'),
-      meta: { requiresAuth: true, roles: ['MANAGER', 'ADMIN'] },
-    },
-    {
-      path: '/',
-      name: 'dashboard',
-      component: () => import('../views/DashboardView.vue'),
-      meta: { requiresAuth: true },
-    },
-
-    {
       path: '/checklists',
       name: 'checklists',
-      component: () => import('../views/ChecklistView.vue'),
+      component: () => import('@/views/ChecklistView.vue'),
       meta: {
         requiresAuth: true,
         roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
       },
     },
-    /**
-     * Route definition for the alcohol compliance module.
-     *
-     * <p>This view is available to authenticated users with the roles
-     * EMPLOYEE, MANAGER, or ADMIN.
-     */
     {
       path: '/alcohol',
       name: 'alcohol',
@@ -75,7 +82,16 @@ const router = createRouter({
     {
       path: '/deviations',
       name: 'deviations',
-      component: () => import('../views/DeviationListView.vue'),
+      component: () => import('@/views/DeviationListView.vue'),
+      meta: {
+        requiresAuth: true,
+        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+      },
+    },
+    {
+      path: '/deviations/new',
+      name: 'deviation-new',
+      component: () => import('@/views/DeviationNewView.vue'),
       meta: {
         requiresAuth: true,
         roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
@@ -84,28 +100,21 @@ const router = createRouter({
     {
       path: '/manage-checklists',
       name: 'manage-checklists',
-      component: () => import('../views/ManageChecklistsView.vue'),
-      meta: { requiresAuth: true, role: 'MANAGER' }
-    },
-    {
-      path: '/deviations/new',
-      name: 'deviation-new',
-      component: () => import('../views/DeviationNewView.vue'),
+      component: () => import('@/views/ManageChecklistsView.vue'),
       meta: {
         requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
+        roles: ['MANAGER', 'ADMIN'],
       },
     },
     {
       path: '/admin',
       name: 'admin',
-      component: () => import('../views/AdminView.vue'),
+      component: () => import('@/views/AdminView.vue'),
       meta: {
         requiresAuth: true,
         roles: ['ADMIN'],
       },
     },
-    // for later if we want a specific dashboard path pointing to the same place
     {
       path: '/dashboard',
       redirect: '/',
@@ -115,10 +124,16 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature/merge-conflict-updates
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
+  const userRole = authStore.user?.role
+  const allowedRoles = to.meta.roles
 
   if (requiresAuth && !authStore.isLoggedIn) {
+<<<<<<< HEAD
     next('/login')
   } else if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
     next('/')
@@ -127,6 +142,20 @@ router.beforeEach((to, from, next) => {
   } else {
     next()
   }
+=======
+    return next('/login')
+  }
+
+  if ((to.path === '/login' || to.path === '/register') && authStore.isLoggedIn) {
+    return next('/')
+  }
+
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
+    return next('/')
+  }
+
+  return next()
+>>>>>>> feature/merge-conflict-updates
 })
 
 export default router
