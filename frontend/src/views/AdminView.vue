@@ -16,6 +16,18 @@
         <div class="form-group">
           <label>Password</label>
           <input v-model="newUser.password" type="password" placeholder="At least 8 characters" />
+          <ul class="password-requirements">
+            <li :class="{ met: newUser.password.length >= 8 }">At least 8 characters</li>
+            <li :class="{ met: /[A-Z]/.test(newUser.password) }">At least one uppercase letter</li>
+            <li :class="{ met: /[0-9]/.test(newUser.password) }">At least one number</li>
+          </ul>
+        </div>
+        <div class="form-group">
+          <label>Confirm password</label>
+          <input v-model="newUser.confirmPassword" type="password" placeholder="Repeat your password" />
+          <p v-if="newUser.confirmPassword && newUser.password !== newUser.confirmPassword" class="field-error">
+            Passwords do not match.
+          </p>
         </div>
         <div class="form-group">
           <label>Role</label>
@@ -100,6 +112,7 @@ const errorMessage = ref('')
 const newUser = ref({
   email: '',
   password: '',
+  confirmPassword: '',
   role: 'EMPLOYEE',
 })
 
@@ -120,6 +133,13 @@ function roleBadgeClass(role) {
     MANAGER: 'badge-manager',
     EMPLOYEE: 'badge-employee',
   }[role] || ''
+}
+
+function validatePassword(pwd) {
+  if (pwd.length < 8) return 'Password must be at least 8 characters.'
+  if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter.'
+  if (!/[0-9]/.test(pwd)) return 'Password must contain at least one number.'
+  return null
 }
 
 async function fetchUsers() {
@@ -143,16 +163,26 @@ async function handleCreateUser() {
     return
   }
 
-  if (newUser.value.password.length < 8) {
-    showError('Password must be at least 8 characters.')
+  const passwordError = validatePassword(newUser.value.password)
+  if (passwordError) {
+    showError(passwordError)
+    return
+  }
+
+  if (newUser.value.password !== newUser.value.confirmPassword) {
+    showError('Passwords do not match.')
     return
   }
 
   loading.value = true
   try {
-    await createUser(newUser.value)
+    await createUser({
+      email: newUser.value.email,
+      password: newUser.value.password,
+      role: newUser.value.role,
+    })
     showSuccess(`User ${newUser.value.email} created.`)
-    newUser.value = { email: '', password: '', role: 'EMPLOYEE' }
+    newUser.value = { email: '', password: '', confirmPassword: '', role: 'EMPLOYEE' }
     await fetchUsers()
   } catch (err) {
     const data = err.response?.data
@@ -271,6 +301,36 @@ button {
 button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.password-requirements {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0 0;
+  font-size: 0.8rem;
+}
+
+.password-requirements li {
+  color: #999;
+  padding: 2px 0;
+}
+
+.password-requirements li::before {
+  content: '✗ ';
+}
+
+.password-requirements li.met {
+  color: #27ae60;
+}
+
+.password-requirements li.met::before {
+  content: '✓ ';
+}
+
+.field-error {
+  color: #d32f2f;
+  font-size: 0.8rem;
+  margin-top: 4px;
 }
 
 table {

@@ -7,20 +7,63 @@
         <span aria-hidden="true">⚠ </span>{{ error }}
       </div>
 
-      <template v-else>
-        <header class="welcome-section">
-          <div class="welcome-text">
-            <h1>Welcome back, {{ authStore.user?.email?.split('@')[0] }}</h1>
-            <p>Everest Sushi & Fusion AS</p>
-          </div>
-          <div class="date-display">
-            {{ new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' }) }}
-          </div>
-        </header>
+      <div v-else class="dashboard-sections">
+        <section class="welcome-card">
+          <h2>Welcome to Checkd</h2>
+          <p>
+            This is your overview for
+            <strong>{{ authStore.user?.organization?.name || 'your restaurant' }}</strong>.
+          </p>
+        </section>
 
-        <div class="sections-container">
-          <section class="module-group">
-            <h2 class="module-title">IK-Mat (Food Safety)</h2>
+        <section v-if="canViewReports" class="manager-tools-section">
+          <h2>Management</h2>
+          <div class="stats-grid">
+            <button
+              type="button"
+              class="stat-card clickable-card"
+              @click="goToReports"
+              aria-label="Open reports section"
+            >
+              <div class="card-header">
+                <h3>Reports</h3>
+                <span class="card-link">Open</span>
+              </div>
+
+              <p class="card-description">
+                Generate compliance reports for deviations, temperature logs, and alcohol logs.
+              </p>
+
+              <p class="ok-text">Available to managers and administrators</p>
+            </button>
+          </div>
+        </section>
+
+        <section class="training-section">
+          <div class="stats-grid">
+            <button
+              type="button"
+              class="stat-card clickable-card"
+              @click="goToTraining"
+              aria-label="Open training section"
+            >
+              <div class="card-header">
+                <h3>Training</h3>
+                <span class="card-link">Open</span>
+              </div>
+
+              <p class="card-description">
+                View policies, complete training quizzes, and track certifications.
+              </p>
+
+              <p class="ok-text">Policies, materials, and certifications in one place</p>
+            </button>
+          </div>
+        </section>
+
+        <div class="sections-grid">
+          <section class="module-section">
+            <h2>IK-Mat</h2>
             <div class="stats-grid">
               <button
                 type="button"
@@ -47,14 +90,33 @@
                     <span v-else-if="hasTemperatureDeviations" class="count-badge">!</span>
                   </div>
                 </div>
-                <p class="card-info">Monitor fridges and freezers.</p>
+
+                <p class="card-description">
+                  View measurements and deviations for fridges, freezers, and other equipment.
+                </p>
+
                 <div v-if="temperatureSummary" class="mini-stats">
-                  <div class="mini-stat"><span>Today</span><strong>{{ temperatureSummary.measurementsToday }}</strong></div>
-                  <div class="mini-stat"><span>Deviations</span><strong>{{ temperatureSummary.deviationsToday }}</strong></div>
+                  <div class="mini-stat">
+                    <span>Today</span>
+                    <strong>{{ temperatureSummary.measurementsToday ?? 0 }}</strong>
+                  </div>
+                  <div class="mini-stat">
+                    <span>Deviations</span>
+                    <strong>{{ temperatureSummary.deviationsToday ?? 0 }}</strong>
+                  </div>
                 </div>
+
                 <p class="status-label" :class="hasTemperatureDeviations ? 'text-danger' : 'text-success'">
                   {{ hasTemperatureDeviations ? 'Deviation detected' : 'No deviations today' }}
                 </p>
+
+                <div v-if="latestTemperatureDeviation && hasTemperatureDeviations" class="latest-deviation-box">
+                  <p class="latest-deviation-title">Latest deviation</p>
+                  <p class="small-text">
+                    {{ latestTemperatureDeviation.equipment?.name || 'Unknown equipment' }}
+                  </p>
+                  <p class="small-text">{{ formatDate(latestTemperatureDeviation.timestamp) }}</p>
+                </div>
               </button>
 
               <button
@@ -67,17 +129,15 @@
                   : 'Open deviations for food safety. No open deviations.'"
               >
                 <div class="card-header">
-                  <h3>Open Deviations</h3>
-                  <div class="card-status-icon">
-                    <span v-if="matDeviations > 0" class="count-badge">{{ matDeviations }}</span>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </div>
+                  <h3>Deviations</h3>
+                  <span v-if="matDeviations > 0" class="count-badge">{{ matDeviations }}</span>
+                  <span v-else class="card-link">Open</span>
                 </div>
-                <p class="card-info">Unresolved food safety issues.</p>
+
+                <p class="card-description">View and follow up open food safety deviations.</p>
+
                 <p :class="matDeviations > 0 ? 'text-danger' : 'text-success'" class="status-label">
-                  {{ matDeviations > 0 ? 'Action required' : 'All clear' }}
+                  {{ matDeviations > 0 ? 'Action required' : 'No open deviations' }}
                 </p>
               </button>
 
@@ -86,29 +146,30 @@
                 class="stat-card clickable-card"
                 :class="matStats.remaining > 0 ? 'status-warning' : 'status-success'"
                 @click="router.push('/checklists')"
-                :aria-label="`Daily routines. ${matStats.completed} of ${matStats.total} tasks completed. Open checklists.`"
+                :aria-label="`Food safety checklists. ${matStats.completed} of ${matStats.total} tasks completed.`"
               >
                 <div class="card-header">
-                  <h3>Daily Routines</h3>
-                  <div class="card-status-icon">
-                    <span v-if="matStats.remaining > 0" class="count-badge warn">{{ matStats.remaining }}</span>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </div>
+                  <h3>Checklists</h3>
+                  <span class="card-link">Open</span>
                 </div>
-                <div class="progress-row">
-                  <span class="big-num">{{ matStats.completed }}</span><span class="total-num">/ {{ matStats.total }} tasks</span>
+
+                <p class="card-description">Track task completion for food safety routines.</p>
+
+                <div v-if="matStats.total > 0" class="progress-row">
+                  <span class="big-num">{{ matStats.completed }}</span>
+                  <span class="total-num">/ {{ matStats.total }} completed</span>
                 </div>
-                <p class="status-label" :class="matStats.remaining > 0 ? 'text-warning' : 'text-success'">
-                  {{ matStats.remaining > 0 ? 'Tasks remaining' : 'All tasks completed' }}
+
+                <p v-if="matStats.total === 0" class="small-text">No checklists found.</p>
+                <p v-else class="status-label" :class="matStats.remaining > 0 ? 'text-warning' : 'text-success'">
+                  {{ matStats.remaining > 0 ? `${matStats.remaining} tasks remaining` : 'All done' }}
                 </p>
               </button>
             </div>
           </section>
 
-          <section class="module-group">
-            <h2 class="module-title">IK-Alcohol (Compliance)</h2>
+          <section class="module-section">
+            <h2>IK-Alkohol</h2>
             <div class="stats-grid">
               <button
                 type="button"
@@ -122,17 +183,27 @@
                 <div class="card-header">
                   <h3>Alcohol Log</h3>
                   <div class="card-status-icon">
-                    <svg v-if="alcoholStatus && !alcoholWarning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <svg
+                      v-if="alcoholStatus && !alcoholWarning"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                      aria-hidden="true"
+                    >
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
                     <span v-else class="count-badge">!</span>
                   </div>
                 </div>
-                <p class="card-info">Age checks and shift incidents.</p>
+
+                <p class="card-description">Age checks and shift incidents.</p>
+
                 <div class="status-row">
                   <span :class="alcoholStatus ? 'dot-success' : 'dot-danger'" aria-hidden="true"></span>
                   <span class="small-text">{{ alcoholStatus ? 'Registered' : 'Missing today' }}</span>
                 </div>
+
                 <p v-if="alcoholWarning" class="text-danger xsmall">{{ alcoholWarning }}</p>
               </button>
 
@@ -146,15 +217,13 @@
                   : 'Open alcohol deviations. No open issues.'"
               >
                 <div class="card-header">
-                  <h3>Open Deviations</h3>
-                  <div class="card-status-icon">
-                    <span v-if="alcoholDeviations > 0" class="count-badge">{{ alcoholDeviations }}</span>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </div>
+                  <h3>Deviations</h3>
+                  <span v-if="alcoholDeviations > 0" class="count-badge">{{ alcoholDeviations }}</span>
+                  <span v-else class="card-link">Open</span>
                 </div>
-                <p class="card-info">Compliance and serving issues.</p>
+
+                <p class="card-description">View and follow up open alcohol-related deviations.</p>
+
                 <p :class="alcoholDeviations > 0 ? 'text-danger' : 'text-success'" class="status-label">
                   {{ alcoholDeviations > 0 ? 'Follow up needed' : 'No open issues' }}
                 </p>
@@ -165,28 +234,31 @@
                 class="stat-card clickable-card"
                 :class="alcoholStats.remaining > 0 ? 'status-warning' : 'status-success'"
                 @click="router.push('/checklists')"
-                :aria-label="`Bar routines. ${alcoholStats.completed} of ${alcoholStats.total} tasks completed. Open checklists.`"
+                :aria-label="`Alcohol checklists. ${alcoholStats.completed} of ${alcoholStats.total} tasks completed.`"
               >
                 <div class="card-header">
-                  <h3>Bar Routines</h3>
-                  <div class="card-status-icon">
-                    <span v-if="alcoholStats.remaining > 0" class="count-badge warn">{{ alcoholStats.remaining }}</span>
-                    <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </div>
+                  <h3>Checklists</h3>
+                  <span class="card-link">Open</span>
                 </div>
-                <div class="progress-row">
-                  <span class="big-num">{{ alcoholStats.completed }}</span><span class="total-num">/ {{ alcoholStats.total }} tasks</span>
+
+                <p class="card-description">
+                  Track checklist completion for bar and serving routines.
+                </p>
+
+                <div v-if="alcoholStats.total > 0" class="progress-row">
+                  <span class="big-num">{{ alcoholStats.completed }}</span>
+                  <span class="total-num">/ {{ alcoholStats.total }} completed</span>
                 </div>
-                <p class="status-label" :class="alcoholStats.remaining > 0 ? 'text-warning' : 'text-success'">
-                  {{ alcoholStats.remaining > 0 ? 'Tasks remaining' : 'All tasks completed' }}
+
+                <p v-if="alcoholStats.total === 0" class="small-text">No checklists found.</p>
+                <p v-else class="status-label" :class="alcoholStats.remaining > 0 ? 'text-warning' : 'text-success'">
+                  {{ alcoholStats.remaining > 0 ? `${alcoholStats.remaining} tasks remaining` : 'All done' }}
                 </p>
               </button>
             </div>
           </section>
         </div>
-      </template>
+      </div>
     </main>
   </div>
 </template>
@@ -214,20 +286,47 @@ const latestTemperatureDeviations = ref([])
 const checklists = ref([])
 const deviations = ref([])
 
-const hasTemperatureDeviations = computed(() => {
-  return temperatureSummary.value && temperatureSummary.value.deviationsToday > 0
+
+const currentShiftId = computed(() => {
+  return (
+    authStore.user?.activeShift?.id ||
+    authStore.user?.currentShift?.id ||
+    authStore.user?.shift?.id ||
+    null
+  )
 })
 
-const matDeviations = computed(
-  () => deviations.value.filter((d) => d.status === 'OPEN' && d.module === 'IK_MAT').length,
+const latestTemperatureDeviation = computed(() => {
+  return latestTemperatureDeviations.value.length > 0 ? latestTemperatureDeviations.value[0] : null
+})
+
+const hasTemperatureDeviations = computed(() => {
+  return (temperatureSummary.value?.deviationsToday ?? 0) > 0
+})
+
+const canViewReports = computed(() => {
+  return ['MANAGER', 'ADMIN'].includes(authStore.user?.role)
+})
+
+const matDeviations = computed(() => {
+  return deviations.value.filter(
+    (d) => d.status === 'OPEN' && (d.module === 'IK_MAT' || d.module === 'IK_MATVARE'),
+  ).length
+})
+
+const alcoholDeviations = computed(() => {
+  return deviations.value.filter(
+    (d) => d.status === 'OPEN' && (d.module === 'IK_ALKOHOL' || d.module === 'BAR'),
+  ).length
+})
+
+const matChecklists = computed(() =>
+  checklists.value.filter((c) => c.module !== 'BAR' && c.module !== 'IK_ALKOHOL'),
 )
 
-const alcoholDeviations = computed(
-  () => deviations.value.filter((d) => d.status === 'OPEN' && d.module === 'IK_ALKOHOL').length,
+const alcoholChecklists = computed(() =>
+  checklists.value.filter((c) => c.module === 'BAR' || c.module === 'IK_ALKOHOL'),
 )
-
-const matChecklists = computed(() => checklists.value.filter((c) => c.module !== 'BAR'))
-const alcoholChecklists = computed(() => checklists.value.filter((c) => c.module === 'BAR'))
 
 const matStats = computed(() => {
   const allItems = matChecklists.value.flatMap((c) => c.items || [])
@@ -243,67 +342,105 @@ const alcoholStats = computed(() => {
   return { completed, total, remaining: total - completed }
 })
 
+
+function formatDate(dateTime) {
+  if (!dateTime) return '-'
+
+  try {
+    return new Date(dateTime).toLocaleString('en-GB', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    })
+  } catch {
+    return dateTime
+  }
+}
+
 async function loadAlcoholStatus() {
   try {
     const res = await alcoholApi.getAlcoholStatus()
-    alcoholStatus.value = res.data.hasLogs
+    alcoholStatus.value = res.data?.hasLogs ?? false
   } catch (e) {
     console.error('Failed to load alcohol status:', e)
+    alcoholStatus.value = null
   }
 }
 
 async function loadAlcoholWarning() {
   try {
-    const shiftId = 1
-    const response = await alcoholApi.getMissingRegistrationWarning(shiftId)
-    alcoholWarning.value = response.data.missing ? response.data.message : ''
+    if (!currentShiftId.value || !alcoholApi.getMissingRegistrationWarning) {
+      alcoholWarning.value = ''
+      return
+    }
+
+    const response = await alcoholApi.getMissingRegistrationWarning(currentShiftId.value)
+    alcoholWarning.value = response.data?.missing ? response.data.message : ''
   } catch (e) {
     console.error('Failed to load alcohol warning:', e)
+    alcoholWarning.value = ''
   }
 }
 
 async function loadTemperatureData() {
   try {
     const summaryResponse = await temperatureApi.getTemperatureSummary()
-    temperatureSummary.value = summaryResponse.data
+    temperatureSummary.value = summaryResponse.data || null
   } catch (e) {
     console.error('Failed to load temperature summary:', e)
+    temperatureSummary.value = null
   }
 
   try {
     const deviationsResponse = await temperatureApi.getLatestDeviations(5)
-    latestTemperatureDeviations.value = deviationsResponse.data
+    latestTemperatureDeviations.value = Array.isArray(deviationsResponse.data)
+      ? deviationsResponse.data
+      : []
   } catch (e) {
     console.error('Failed to load latest temperature deviations:', e)
+    latestTemperatureDeviations.value = []
   }
 }
 
-async function goToAlcohol() {
-  await router.push('/alcohol')
+async function loadDashboardLists() {
+  const [deviationRes, checklistRes] = await Promise.all([
+    deviationApi.getAll(),
+    checklistApi.getAll(),
+  ])
+
+  deviations.value = Array.isArray(deviationRes.data) ? deviationRes.data : []
+  checklists.value = Array.isArray(checklistRes.data) ? checklistRes.data : []
 }
 
-async function goToTemperature() {
-  await router.push('/temperature')
+function goToAlcohol() {
+  router.push('/alcohol')
+}
+
+function goToTemperature() {
+  router.push('/temperature')
+}
+
+function goToReports() {
+  router.push('/reports')
+}
+
+function goToTraining() {
+  router.push('/training')
 }
 
 onMounted(async () => {
+  loading.value = true
+  error.value = ''
+
   try {
     await Promise.all([
       loadAlcoholStatus(),
       loadAlcoholWarning(),
       loadTemperatureData(),
+      loadDashboardLists(),
     ])
-
-    const [deviationRes, checklistRes] = await Promise.all([
-      deviationApi.getAll(),
-      checklistApi.getAll(),
-    ])
-
-    deviations.value = Array.isArray(deviationRes.data) ? deviationRes.data : []
-    checklists.value = Array.isArray(checklistRes.data) ? checklistRes.data : []
   } catch (e) {
+    console.error('Failed to load dashboard data:', e)
     error.value = 'Failed to load dashboard data.'
-    console.error(e)
   } finally {
     loading.value = false
   }
@@ -322,45 +459,45 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
-.welcome-section {
+.dashboard-sections {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 40px;
-  padding: 0 8px;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.welcome-text h1 {
-  font-size: 1.75rem;
-  color: #3C3489;
-  margin-bottom: 4px;
-  font-weight: 800;
+.welcome-card,
+.manager-tools-section,
+.training-section,
+.module-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 
-.welcome-text p {
-  color: #4b5563;
-  font-size: 1rem;
+.welcome-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
 }
 
-.date-display {
-  color: #5a529f;
-  font-weight: 600;
-  font-size: 0.95rem;
-  text-transform: capitalize;
+.welcome-card h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #1f2937;
 }
 
-.module-group {
-  margin-bottom: 48px;
+.sections-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
-.module-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #534AB7;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 20px;
-  padding-left: 4px;
+.module-section h2,
+.manager-tools-section h2 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 1.2rem;
+  color: #1f2937;
 }
 
 .stats-grid {
@@ -371,14 +508,14 @@ onMounted(async () => {
 
 .stat-card {
   background: #ffffff;
-  border: 1px solid #e0dfd8;
+  border: 1px solid #e5e7eb;
   border-left: 6px solid #d1d5db;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  min-height: 160px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  min-height: 220px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
   text-align: left;
   width: 100%;
 }
@@ -390,18 +527,22 @@ button.stat-card {
 
 .status-success { border-left-color: #10b981; }
 .status-warning { border-left-color: #f59e0b; }
-.status-danger  { border-left-color: #ef4444; }
+.status-danger { border-left-color: #ef4444; }
 
 .clickable-card {
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .clickable-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   background: #fcfcfb;
-  box-shadow: 0 12px 24px rgba(60, 52, 137, 0.08);
   border-color: #7F77DD;
+  box-shadow: 0 12px 24px rgba(60, 52, 137, 0.08);
 }
 
 .clickable-card:focus-visible {
@@ -413,14 +554,28 @@ button.stat-card {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
 .card-header h3 {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #3C3489;
+  color: #111827;
   margin: 0;
+}
+
+.card-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2563eb;
+  white-space: nowrap;
+}
+
+.card-description {
+  margin-bottom: 16px;
+  color: #4b5563;
+  line-height: 1.5;
 }
 
 .card-status-icon {
@@ -449,15 +604,29 @@ button.stat-card {
   text-align: center;
 }
 
-.count-badge.warn {
-  background: #b45309;
-  color: white;
+.mini-stats {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
-.card-info {
-  font-size: 0.95rem;
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+}
+
+.mini-stat span {
   color: #4b5563;
-  margin-bottom: auto;
+  font-weight: 600;
+}
+
+.mini-stat strong {
+  font-size: 1.1rem;
+  color: #3C3489;
 }
 
 .progress-row {
@@ -484,29 +653,18 @@ button.stat-card {
   margin-top: 8px;
 }
 
-.mini-stats {
-  background: #f8fafc;
-  border-radius: 10px;
+.latest-deviation-box {
+  margin-top: 12px;
   padding: 12px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
 }
 
-.mini-stat {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.8rem;
-}
-
-.mini-stat span {
-  color: #4b5563;
-  font-weight: 600;
-}
-
-.mini-stat strong {
-  font-size: 1.1rem;
-  color: #3C3489;
+.latest-deviation-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: #991b1b;
 }
 
 .status-row {
@@ -524,17 +682,13 @@ button.stat-card {
   flex-shrink: 0;
 }
 
-.dot-success {
-  background: #166534;
-}
-
-.dot-danger {
-  background: #991b1b;
-}
+.dot-success { background: #166534; }
+.dot-danger { background: #991b1b; }
 
 .small-text {
   color: #374151;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .xsmall {
@@ -557,6 +711,12 @@ button.stat-card {
   font-weight: 700;
 }
 
+.ok-text {
+  color: #15803d;
+  font-weight: 600;
+  margin-top: auto;
+}
+
 .error-banner {
   background: #fff5f5;
   border: 1px solid #fecaca;
@@ -568,18 +728,12 @@ button.stat-card {
 }
 
 @media (max-width: 350px) {
-  .welcome-section {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .welcome-text h1 {
-    font-size: 1.5rem;
-  }
-
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    min-height: unset;
   }
 }
 </style>

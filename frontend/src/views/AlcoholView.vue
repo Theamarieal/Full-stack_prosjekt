@@ -95,6 +95,8 @@
                   id="guestAge"
                   v-model.number="form.guestAge"
                   type="number"
+                  min="0"
+                  max="90"
                   placeholder="e.g. 19"
                   :aria-invalid="!!fieldErrors.guestAge"
                   :aria-describedby="fieldErrors.guestAge ? 'guestAge-error' : undefined"
@@ -169,11 +171,26 @@
               </div>
             </div>
 
-            <div class="info-tile warning-tile">
-              <strong><span aria-hidden="true">⚖ </span>Legal Requirement</strong>
+            <div v-if="showAgeCheckNotes" class="form-group full-width">
+              <label for="ageCheckNotes">{{ ageCheckNotesLabel }}</label>
+              <textarea
+                id="ageCheckNotes"
+                v-model="form.notes"
+                rows="4"
+                :placeholder="ageCheckNotesPlaceholder"
+                :aria-invalid="!!fieldErrors.notes"
+                :aria-describedby="fieldErrors.notes ? 'notes-error' : undefined"
+              />
+              <p v-if="fieldErrors.notes" id="notes-error" class="field-error">
+                {{ fieldErrors.notes }}
+              </p>
+            </div>
+
+            <div class="law-box">
+              <strong>Age control rules</strong>
               <p>
-                Guests under 18 are denied service of all alcohol. <br>
-                Guests under 20 are denied service of spirits (22% or more).
+                Guests must be at least 18 for alcohol below 22% and at least 20 for alcohol at 22%
+                or above. If service is not legally allowed, it must be denied.
               </p>
             </div>
           </div>
@@ -187,7 +204,7 @@
             </p>
           </div>
 
-          <div v-if="form.type === 'INCIDENT' || requiresDenialNotes()" class="form-group full-width">
+          <div v-if="form.type === 'INCIDENT'" class="form-group full-width">
             <label for="notes">
               {{ form.type === 'INCIDENT' ? 'Incident description' : 'Reason for denied service' }}
             </label>
@@ -264,7 +281,11 @@
                 <td class="time-cell">{{ formatTime(log.recordedAt) }}</td>
                 <td>
                   <div class="tag-stack">
-                    <span v-for="t in log.displayTypes" :key="t" :class="['tag', badgeClass(t)]">
+                    <span
+                      v-for="t in log.displayTypes"
+                      :key="t"
+                      :class="['tag', badgeClass(t)]"
+                    >
                       {{ formatType(t) }}
                     </span>
                   </div>
@@ -300,15 +321,7 @@ const successMessage = ref('')
 const history = ref([])
 const historyDate = ref('')
 
-const form = ref({
-  type: 'AGE_CHECK',
-  recordedTime: getNowLocalTime(),
-  notes: '',
-  guestAge: null,
-  alcoholPercentage: null,
-  idChecked: false,
-  serviceDenied: false,
-})
+const form = ref(createDefaultForm())
 
 const fieldErrors = ref({
   guestAge: '',
@@ -318,6 +331,18 @@ const fieldErrors = ref({
   notes: '',
   recordedTime: '',
 })
+
+function createDefaultForm() {
+  return {
+    type: 'AGE_CHECK',
+    recordedTime: getNowLocalTime(),
+    notes: '',
+    guestAge: null,
+    alcoholPercentage: null,
+    idChecked: null,
+    serviceDenied: null,
+  }
+}
 
 /**
  * Clears all field-specific validation messages.
@@ -335,8 +360,6 @@ function clearFieldErrors() {
 
 /**
  * Indicates whether the current user can search historical dates.
- *
- * @type {import('vue').ComputedRef<boolean>}
  */
 const canSearchHistory = computed(() => {
   const role = authStore.user?.role
@@ -344,9 +367,89 @@ const canSearchHistory = computed(() => {
 })
 
 /**
+ * Returns whether the guest is legally old enough for the selected alcohol percentage.
+ */
+function isGuestOldEnough() {
+  if (form.value.guestAge == null || form.value.alcoholPercentage == null) {
+    return false
+  }
+
+  if (form.value.alcoholPercentage >= 22) {
+    return form.value.guestAge >= 20
+  }
+
+  return form.value.guestAge >= 18
+}
+
+/**
+ * Returns whether this age check represents a compliance-risk situation.
+ * These cases should be allowed to save, and the backend should create a deviation.
+ */
+const isDeviationAgeCheck = computed(() => {
+  if (form.value.type !== 'AGE_CHECK') {
+    return false
+  }
+
+  if (
+    form.value.guestAge == null ||
+    form.value.alcoholPercentage == null ||
+    form.value.idChecked == null ||
+    form.value.serviceDenied == null
+  ) {
+    return false
+  }
+
+  const noIdChecked = form.value.idChecked === false
+  const servedUnder18 = form.value.guestAge < 18 && form.value.serviceDenied === false
+  const servedStrongAlcoholUnder20 =
+    form.value.alcoholPercentage >= 22 &&
+    form.value.guestAge < 20 &&
+    form.value.serviceDenied === false
+
+  return noIdChecked || servedUnder18 || servedStrongAlcoholUnder20
+})
+
+/**
+ * Notes are shown for all age checks so the employee can document the situation.
+ */
+const showAgeCheckNotes = computed(() => {
+  return form.value.type === 'AGE_CHECK'
+})
+
+const ageCheckNotesLabel = computed(() => {
+  if (requiresDenialNotes()) {
+    return 'Reason for denied service'
+  }
+
+  if (isDeviationAgeCheck.value) {
+    return 'Additional notes'
+  }
+
+  return 'Notes (optional)'
+})
+
+const ageCheckNotesPlaceholder = computed(() => {
+  if (requiresDenialNotes()) {
+    return 'Explain why service was denied even though the guest met the age requirement.'
+  }
+
+  if (isDeviationAgeCheck.value) {
+    return 'Add any relevant details about this registration.'
+  }
+
+  return 'Add optional notes for this age check.'
+})
+
+/**
+ * Returns whether denial notes are required.
+ * Notes are required when service is denied even though the guest is legally old enough.
+ */
+function requiresDenialNotes() {
+  return form.value.type === 'AGE_CHECK' && form.value.serviceDenied === true && isGuestOldEnough()
+}
+
+/**
  * Returns the current local time formatted for a time input.
- *
- * @returns {string} Current local time in HH:mm format.
  */
 function getNowLocalTime() {
   const now = new Date()
@@ -356,9 +459,6 @@ function getNowLocalTime() {
 
 /**
  * Formats an ISO date-time string to a date string.
- *
- * @param {string|null|undefined} value - The ISO date-time value.
- * @returns {string} Formatted date or fallback value.
  */
 function formatDate(value) {
   if (!value) return '-'
@@ -372,9 +472,6 @@ function formatDate(value) {
 
 /**
  * Formats an ISO date-time string to a time string.
- *
- * @param {string|null|undefined} value - The ISO date-time value.
- * @returns {string} Formatted time or fallback value.
  */
 function formatTime(value) {
   if (!value) return '-'
@@ -386,9 +483,6 @@ function formatTime(value) {
 
 /**
  * Converts an alcohol log type enum value into user-friendly text.
- *
- * @param {string} type - The alcohol log type.
- * @returns {string} A user-friendly label.
  */
 function formatType(type) {
   switch (type) {
@@ -409,9 +503,6 @@ function formatType(type) {
 
 /**
  * Returns a CSS class name for a type badge.
- *
- * @param {string} type - The alcohol log type.
- * @returns {string} A CSS class suffix for styling.
  */
 function badgeClass(type) {
   switch (type) {
@@ -432,9 +523,6 @@ function badgeClass(type) {
 
 /**
  * Returns a normalized text value for comparison.
- *
- * @param {string|null|undefined} value - The value to normalize.
- * @returns {string} A trimmed normalized string.
  */
 function normalizeText(value) {
   return (value || '').trim()
@@ -512,12 +600,6 @@ function validateForm() {
     return false
   }
 
-  if (form.value.type !== 'INCIDENT' && !requiresDenialNotes() && form.value.notes?.trim()) {
-    fieldErrors.value.notes =
-      'Notes are only allowed for incidents or denied age checks that require an explanation.'
-    return false
-  }
-
   if (form.value.type === 'AGE_CHECK') {
     if (form.value.guestAge == null || form.value.guestAge === '') {
       fieldErrors.value.guestAge = 'Guest age is required.'
@@ -539,29 +621,19 @@ function validateForm() {
       return false
     }
 
-    if (form.value.idChecked !== true) {
-      fieldErrors.value.idChecked = 'ID must be checked for an age check registration.'
+    if (form.value.idChecked == null) {
+      fieldErrors.value.idChecked = 'Please select whether ID was checked.'
+      return false
+    }
+
+    if (form.value.serviceDenied == null) {
+      fieldErrors.value.serviceDenied = 'Please select whether service was denied.'
       return false
     }
 
     if (requiresDenialNotes() && !form.value.notes?.trim()) {
       fieldErrors.value.notes =
         'A reason is required when service is denied even though the guest is old enough.'
-      return false
-    }
-
-    if (form.value.guestAge < 18 && form.value.serviceDenied !== true) {
-      fieldErrors.value.serviceDenied = 'Service must be denied for guests under 18.'
-      return false
-    }
-
-    if (
-      form.value.alcoholPercentage >= 22 &&
-      form.value.guestAge < 20 &&
-      form.value.serviceDenied !== true
-    ) {
-      fieldErrors.value.serviceDenied =
-        'Service must be denied for alcohol at 22% or more when the guest is under 20.'
       return false
     }
   }
@@ -571,8 +643,6 @@ function validateForm() {
 
 /**
  * Loads alcohol logs for the current active shift.
- *
- * @returns {Promise<void>}
  */
 async function loadHistory() {
   isLoadingHistory.value = true
@@ -613,8 +683,6 @@ async function loadHistoryByDate() {
 
 /**
  * Submits a new alcohol log entry to the backend.
- *
- * @returns {Promise<void>}
  */
 async function submitLog() {
   if (!validateForm()) return
@@ -627,7 +695,8 @@ async function submitLog() {
     const payload = {
       type: form.value.type,
       recordedTime: form.value.recordedTime,
-      notes: form.value.type === 'INCIDENT' || requiresDenialNotes() ? form.value.notes : null,
+      notes:
+        form.value.type === 'INCIDENT' || form.value.type === 'AGE_CHECK' ? form.value.notes : null,
       guestAge: form.value.type === 'AGE_CHECK' ? form.value.guestAge : null,
       alcoholPercentage: form.value.type === 'AGE_CHECK' ? form.value.alcoholPercentage : null,
       idChecked: form.value.type === 'AGE_CHECK' ? form.value.idChecked : null,
@@ -637,25 +706,19 @@ async function submitLog() {
     await alcoholApi.createLog(payload)
 
     successMessage.value = 'Alcohol registration saved successfully.'
-    form.value = {
-      type: 'AGE_CHECK',
-      recordedTime: getNowLocalTime(),
-      notes: '',
-      guestAge: null,
-      alcoholPercentage: null,
-      idChecked: null,
-      serviceDenied: null,
-    }
+    form.value = createDefaultForm()
 
     await loadHistory()
     activeTab.value = 'history'
   } catch (error) {
     console.error('Failed to save alcohol log:', error)
 
-    const backendMessage = error.response?.data?.message
+    const responseData = error.response?.data
 
-    if (backendMessage) {
-      errorMessage.value = backendMessage
+    if (typeof responseData === 'string') {
+      errorMessage.value = responseData
+    } else if (responseData?.message) {
+      errorMessage.value = responseData.message
     } else {
       errorMessage.value = 'Failed to save alcohol registration.'
     }
@@ -665,30 +728,33 @@ async function submitLog() {
 }
 
 /**
- * Returns whether the guest is legally old enough for the selected alcohol percentage.
- *
- * @returns {boolean} True if the guest is legally old enough, otherwise false.
+ * Clear messages when the log type changes.
  */
-function isGuestOldEnough() {
-  if (form.value.guestAge == null || form.value.alcoholPercentage == null) {
-    return false
-  }
+watch(
+  () => form.value.type,
+  (newType) => {
+    clearFieldErrors()
+    errorMessage.value = ''
+    successMessage.value = ''
 
-  if (form.value.alcoholPercentage >= 22) {
-    return form.value.guestAge >= 20
-  }
+    if (newType !== 'AGE_CHECK') {
+      form.value.guestAge = null
+      form.value.alcoholPercentage = null
+      form.value.idChecked = null
+      form.value.serviceDenied = null
+    }
 
-  return form.value.guestAge >= 18
-}
+    if (newType !== 'AGE_CHECK' && newType !== 'INCIDENT') {
+      form.value.notes = ''
+    }
 
-/**
- * Returns whether denial notes are required.
- *
- * @returns {boolean} True if denial notes are required.
- */
-function requiresDenialNotes() {
-  return form.value.type === 'AGE_CHECK' && form.value.serviceDenied === true && isGuestOldEnough()
-}
+    if (newType === 'AGE_CHECK') {
+      form.value.notes = ''
+      form.value.idChecked = null
+      form.value.serviceDenied = null
+    }
+  },
+)
 
 /**
  * Loads history when the history tab becomes active.
@@ -698,17 +764,6 @@ watch(activeTab, async (newTab) => {
     await loadHistory()
   }
 })
-
-watch(
-  () => [form.value.guestAge, form.value.alcoholPercentage],
-  ([age, percentage]) => {
-    if (age == null || percentage == null) return
-
-    if (age < 18 || (percentage >= 22 && age < 20)) {
-      form.value.serviceDenied = true
-    }
-  },
-)
 
 /**
  * Loads initial history when the component is mounted.
@@ -817,16 +872,6 @@ textarea:focus-visible {
 .info-tile { width: 100%; grid-column: 1 / -1; max-width: none; padding: 16px; border-radius: 12px; margin-top: 16px; font-size: 0.9rem; }
 .warning-tile { background: #fffbeb; border: 1.5px solid #fcd34d; }
 .neutral-tile {  background: #f3f4f6;  border: 1.5px solid #d1d5db;  color: #111827;}
-.info-tile strong { display: block; color: #3C3489; margin-bottom: 4px; }
-
-.save-btn { background: #534AB7; color: white; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; }
-.apply-btn { background: #534AB7; color: white; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-.secondary-btn-minimal { background: transparent; border: 1.5px solid #e0dfd8; padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-
-.table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-th { text-align: left; padding: 12px; color: #4338ca; font-size: 0.75rem; text-transform: uppercase; border-bottom: 2px solid #f0f0f0; }
-td { padding: 16px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
 
 .tag-stack { display: flex; gap: 6px; }
 .tag { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
@@ -836,11 +881,7 @@ td { padding: 16px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
 .badge-serving-end { background: #fffbeb; color: #92400e; }
 .badge-break { background: #f0f9ff; color: #0c4a6e; }
 
-.error-banner { background: #fff5f5; color: #991b1b; padding: 16px; border-radius: 12px; font-weight: 700; margin-bottom: 20px; border: 1px solid #fecaca; }
-.success-banner { background: #ecfdf5; color: #166534;  padding: 16px;  border-radius: 12px;  font-weight: 700;  margin-bottom: 20px;  border: 1px solid #bbf7d0;}
 .field-error { color: #b91c1c; font-size: 0.85rem; font-weight: 700; margin-top: 6px; }
-.empty-state { text-align: center; color: #4b5563; padding: 40px; font-weight: 600; }
-.results-count {color: #374151; font-weight: 600;}
 
 .sr-only {
   position: absolute;
@@ -854,8 +895,132 @@ td { padding: 16px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
   border: 0;
 }
 
+.conditional-area {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.law-box {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.law-box p {
+  margin: 8px 0 0 0;
+}
+
+.tag-stack {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+
 .manager-tools-grid { display: flex; gap: 20px; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
 .manager-actions { display: flex; gap: 10px; }
+
+.save-btn {
+  background: #534AB7;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.save-btn:hover {
+  background: #3C3489;
+}
+
+.save-btn:disabled {
+  background: #a8a3d6;
+  cursor: not-allowed;
+}
+
+.apply-btn {
+  background: #534AB7;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.apply-btn:hover {
+  background: #3C3489;
+}
+
+.apply-btn:disabled {
+  background: #a8a3d6;
+  cursor: not-allowed;
+}
+
+.secondary-btn-minimal {
+  background: transparent;
+  border: 1.5px solid #e0dfd8;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #3C3489;
+  transition: all 0.2s;
+}
+
+.secondary-btn-minimal:hover {
+  background: #fafaf8;
+  border-color: #534AB7;
+}
+
+.form-actions {
+  display: flex;
+  width: 100%;
+}
+
+.error-banner {
+  background: #fff5f5;
+  color: #991b1b;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border: 1px solid #fecaca;
+}
+
+.success-banner {
+  background: #ecfdf5;
+  color: #166534;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border: 1px solid #bbf7d0;
+}
+
+.empty-state {
+  text-align: center;
+  color: #4b5563;
+  padding: 40px;
+  font-weight: 600;
+}
+
+.results-count {
+  color: #374151;
+  font-weight: 600;
+}
+
+.help-text {
+  font-size: 0.8rem;
+  color: #4b5563;
+  margin: 0 0 6px 0;
+}
 
 @media (max-width: 350px) {
   .form-grid, .inner-grid, .manager-tools-grid { grid-template-columns: 1fr; }

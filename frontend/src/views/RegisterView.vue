@@ -49,10 +49,41 @@
             placeholder="At least 8 characters"
             required
             :aria-invalid="!!error"
-            :aria-describedby="error ? 'register-error' : undefined"
+            :aria-describedby="error ? 'register-error password-help' : 'password-help'"
           />
+          <ul id="password-help" class="password-requirements">
+            <li :class="{ met: password.length >= 8 }">At least 8 characters</li>
+            <li :class="{ met: /[A-Z]/.test(password) }">At least one uppercase letter</li>
+            <li :class="{ met: /[0-9]/.test(password) }">At least one number</li>
+          </ul>
         </div>
-
+      
+        <div class="form-group">
+          <label for="reg-confirm-password">Confirm password</label>
+          <input
+            id="reg-confirm-password"
+            v-model="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Repeat your password"
+            required
+            :aria-invalid="!!error || (!!confirmPassword && password !== confirmPassword)"
+            :aria-describedby="[
+              'password-help',
+              error ? 'register-error' : '',
+              confirmPassword && password !== confirmPassword ? 'confirm-password-error' : ''
+            ].filter(Boolean).join(' ')"
+          />
+          <p
+            v-if="confirmPassword && password !== confirmPassword"
+            id="confirm-password-error"
+            class="field-error"
+            role="alert"
+          >
+            Passwords do not match.
+          </p>
+        </div>
+      
         <div class="form-group">
           <label for="reg-role">Your role</label>
           <select
@@ -71,10 +102,10 @@
         </button>
       </form>
 
-<p v-if="error" id="register-error" class="error-msg" role="alert" aria-live="assertive">
-  <span aria-hidden="true">⚠ </span>{{ error }}
-</p>
-      
+      <p v-if="error" id="register-error" class="error-msg" role="alert" aria-live="assertive">
+        <span aria-hidden="true">⚠ </span>{{ error }}
+      </p>
+
       <div class="footer-link">
         <span>Do you already have a user? </span>
         <router-link to="/login">Log in here</router-link>
@@ -85,42 +116,61 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
 
-const auth = useAuthStore();
-const router = useRouter();
+const auth = useAuthStore()
+const router = useRouter()
 
-const email = ref('');
-const password = ref('');
-const role = ref('EMPLOYEE');
-const error = ref('');
-const loading = ref(false);
+const email = ref('')
+const password = ref('')
+const confirmPassword = ref('')
+const role = ref('EMPLOYEE')
+const error = ref('')
+const loading = ref(false)
+
+const validatePassword = (pwd) => {
+  if (pwd.length < 8) return 'Password must be at least 8 characters.'
+  if (!/[A-Z]/.test(pwd)) return 'Password must contain at least one uppercase letter.'
+  if (!/[0-9]/.test(pwd)) return 'Password must contain at least one number.'
+  return null
+}
 
 const handleRegister = async () => {
-  error.value = '';
-  loading.value = true;
+  error.value = ''
 
-  try {
-    const success = await auth.register(
-      email.value, 
-      password.value, 
-      role.value, 
-      1
-    );
-
-    if (success) {
-      router.push('/');
-    } else {
-      error.value = "Something went wrong. Try again.";
-    }
-  } catch (err) {
-    error.value = "Could not create user. Maybe e-mail is already in use?";
-  } finally {
-    loading.value = false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value)) {
+    error.value = 'Must be a valid e-mail address.'
+    return
   }
-};
+
+  const passwordError = validatePassword(password.value)
+  if (passwordError) {
+    error.value = passwordError
+    return
+  }
+
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Passwords do not match.'
+    return
+  }
+
+  loading.value = true
+  try {
+    const result = await auth.register(email.value, password.value, role.value, 1)
+    if (result?.success ?? result) {
+      router.push('/')
+    } else {
+      error.value = result?.message || 'Something went wrong. Try again.'
+    }
+  } catch {
+    error.value = 'Could not create user. Maybe e-mail is already in use?'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -181,24 +231,70 @@ h2 { color: #3C3489; font-weight: 700; margin-bottom: 4px; }
 
 .form-group { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
 label { font-weight: 600; margin-bottom: 6px; color: #3C3489; font-size: 0.9rem; }
-input, select { 
-  padding: 12px; 
-  border: 1.5px solid #e0dfd8; 
-  border-radius: 10px; 
-  font-size: 16px; 
-  width: 100%; 
-  background: #fafaf8; 
-  color: #2c2c2a;
-}
 input:focus, select:focus { outline: none; border-color: #7F77DD; background: #ffffff; }
 
 .register-btn {
-  width: 100%; padding: 14px;
+  width: 100%; padding: 14px; margin-top: 1rem;
   background: #534AB7; color: white;
   border: none; border-radius: 10px;
   font-weight: 700; cursor: pointer; transition: background 0.2s;
-  margin-top: 1rem;
 }
+
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e0dfd8;
+  border-radius: 10px;
+  font-size: 16px;
+  background: #fafaf8;
+  color: #2c2c2a;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.register-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.password-requirements {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.8rem;
+}
+
+.password-requirements li {
+  color: #999;
+  padding: 2px 0;
+}
+
+.password-requirements li::before {
+  content: '✗ ';
+}
+
+.password-requirements li.met {
+  color: #27ae60;
+}
+
+.password-requirements li.met::before {
+  content: '✓ ';
+}
+
+.field-error {
+  color: #991b1b;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
 .register-btn:hover { background: #3C3489; }
 
 .error-msg {
@@ -229,6 +325,8 @@ input:focus, select:focus { outline: none; border-color: #7F77DD; background: #f
     box-shadow: none;
     min-height: 100vh;
     padding: 3rem 1.5rem;
+    display: flex;
+    flex-direction: column;
   }
 
   .footer-link {
