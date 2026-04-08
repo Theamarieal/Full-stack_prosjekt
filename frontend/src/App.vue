@@ -1,36 +1,51 @@
 <template>
   <div id="app">
-    <nav class="global-nav" v-if="authStore.isLoggedIn">
-      <span class="nav-logo">Checkd</span>
-      <div class="nav-links">
-        <a @click="router.push('/')">Dashboard</a>
-        <a @click="router.push('/checklists')">Checklists</a>
-        <a @click="router.push('/temperature')">Temperature</a>
-        <a @click="router.push('/alcohol')">Alcohol</a>
-        <a @click="router.push('/deviations')">Deviations</a>
+    <nav class="global-nav" v-if="authStore.isLoggedIn" aria-label="Main navigation">
+      
+      <router-link to="/" class="nav-logo">
+        <div class="logo-icon-nav" aria-hidden="true">
+          <div class="logo-line line-1"></div>
+          <div class="logo-line line-2"></div>
+          <div class="logo-line line-3"></div>
+          <div class="logo-line line-4"></div>
+          <div class="logo-check-nav">
+            <svg viewBox="0 0 24 24" fill="none">
+              <polyline points="5,12 10,17 19,7" stroke="#CECBF6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+        <span class="app-name-nav">Checkd</span>
+      </router-link>
 
-        <a
+      <div class="nav-links">
+        <router-link to="/">Dashboard</router-link>
+        <router-link to="/checklists">Checklists</router-link>
+        <router-link to="/temperature">Temperature</router-link>
+        <router-link to="/alcohol">Alcohol</router-link>
+        <router-link to="/deviations">Deviations</router-link>
+
+        <router-link 
           v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
-          @click="router.push('/manage-checklists')"
-          style="color: #f1c40f; font-weight: bold;"
-        >
-          Manage Checklists
-        </a>
-        <a
+          to="/manage-checklists" 
+          role="menuitem" 
+          class="manager-link"
+        >Manage</router-link>
+        
+        <router-link 
           v-if="authStore.getUserRole === 'ADMIN'"
-          @click="router.push('/admin')"
-          style="color: #e74c3c; font-weight: bold;"
-        >
-          Admin
-        </a>
+          to="/admin" 
+          role="menuitem" 
+          class="admin-link"
+        >Admin</router-link>
       </div>
+
       <div class="nav-right">
-        <span class="nav-user">{{ authStore.user?.email }} ({{ authStore.user?.role }})</span>
+        <span class="nav-user">{{ authStore.user?.email.split('@')[0] }}</span>
         <button @click="handleLogout" class="logout-btn">Log out</button>
       </div>
 
-      <!-- Hamburger button (mobile only) -->
       <button
+        type="button"
         class="hamburger"
         @click="menuOpen = !menuOpen"
         :aria-expanded="menuOpen.toString()"
@@ -43,29 +58,28 @@
       </button>
     </nav>
 
-    <!-- Mobile dropdown menu -->
     <div
       v-if="authStore.isLoggedIn && menuOpen"
       id="mobile-menu"
       class="mobile-menu"
-      role="menu"
-    >
-      <a @click="navigate('/')" role="menuitem">Dashboard</a>
-      <a @click="navigate('/checklists')" role="menuitem">Checklists</a>
-      <a @click="navigate('/temperature')" role="menuitem">Temperature</a>
-      <a @click="navigate('/alcohol')" role="menuitem">Alcohol</a>
-      <a @click="navigate('/deviations')" role="menuitem">Deviations</a>
-      <a
+    >   
+      <router-link to="/" @click="menuOpen = false">Dashboard</router-link>
+      <router-link to="/checklists" @click="menuOpen = false">Checklists</router-link>
+      <router-link to="/temperature" @click="menuOpen = false">Temperature</router-link>
+      <router-link to="/alcohol" @click="menuOpen = false">Alcohol</router-link>
+      <router-link to="/deviations" @click="menuOpen = false">Deviations</router-link>
+      <router-link
         v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
-        @click="navigate('/manage-checklists')"
-        role="menuitem"
-        class="manager-link"
-      >Manage checklists</a>
+        to="/manage-checklists"
+        @click="menuOpen = false"
+        class="manager-link-mobile"
+      >Manage checklists</router-link>
       <div class="mobile-menu-footer">
         <span class="mobile-user">{{ authStore.user?.email }}</span>
-        <button @click="handleLogout" class="logout-btn">Log out</button>
+        <button @click="handleLogout" class="logout-btn-mobile">Log out</button>
       </div>
     </div>
+
     <router-view />
   </div>
 </template>
@@ -85,7 +99,6 @@ function handleLogout() {
   router.push('/login')
 }
 
-// Close menu after navigating on mobile
 function navigate(path) {
   menuOpen.value = false
   router.push(path)
@@ -93,215 +106,221 @@ function navigate(path) {
 </script>
 
 <style>
-*,
-*::before,
-*::after {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f7f6f2;
-  color: #2c2c2a;
 }
 
 #app {
   min-height: 100vh;
 }
 
-/* ── Navbar ─────────────────────────────────────────── */
 .global-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  background: #2c3e50;
-  color: white;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e0dfd8;
+  min-height: 72px;
   position: sticky;
   top: 0;
-  z-index: 100;
-  gap: 16px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(60, 52, 137, 0.05);
 }
 
 .nav-logo {
-  font-weight: bold;
-  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   cursor: pointer;
+}
+
+.logo-icon-nav {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  background: #534AB7;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
   flex-shrink: 0;
+}
+
+.logo-line { height: 3.5px; border-radius: 2px; }
+.line-1 { width: 20px; background: #FAC775; opacity: 0.9; }
+.line-2 { width: 15px; background: #9FE1CB; opacity: 0.85; }
+.line-3 { width: 18px; background: #F5C4B3; opacity: 0.8; }
+.line-4 { width: 12px; background: #B5D4F4; opacity: 0.7; }
+
+.logo-check-nav {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: #26215C;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #ffffff;
+}
+.logo-check-nav svg { width: 10px; height: 10px; }
+
+.app-name-nav {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: #3C3489;
+  letter-spacing: -0.5px;
 }
 
 .nav-links {
   display: flex;
-  gap: 24px;
+  gap: 4px;
   flex: 1;
+  margin-left: 20px;
 }
 
 .nav-links a {
-  color: white;
-  cursor: pointer;
+  color: #4b5563;
+  padding: 0 14px;
   text-decoration: none;
   font-size: 0.95rem;
-  opacity: 0.85;
-  white-space: nowrap;
-  min-height: 44px;
-  display: inline-flex;
+  font-weight: 600;
+  display: flex;
   align-items: center;
+  min-height: 72px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
 }
 
-.nav-links a:hover,
-.nav-links a:focus-visible {
-  opacity: 1;
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
-  border-radius: 2px;
+.nav-links a:hover {
+  color: #534AB7;
+  background: #f8fafc;
 }
 
-.manager-link {
-  color: #f1c40f !important;
-  font-weight: bold;
+.nav-links .router-link-active {
+  color: #534AB7;
+  border-bottom-color: #534AB7;
 }
 
-.admin-link {
-  color: #e74c3c !important; /* Den røde fargen fra dev-branchen */
-  font-weight: bold;
-}
-
-.mobile-menu .admin-link {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(231, 76, 60, 0.1); /* En svak rød nyanse i bakgrunnen på mobil */
-}
+.manager-link { color: #d97706 !important; }
+.admin-link { color: #e74c3c !important; font-weight: bold; }
 
 .nav-right {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex-shrink: 0;
 }
 
 .nav-user {
   font-size: 0.85rem;
-  opacity: 0.75;
+  color: #4b5563;
+  font-weight: 600;
+  background: #f5f4ff;
+  padding: 6px 12px;
+  border-radius: 20px;
 }
 
 .logout-btn {
-  background: #e74c3c;
-  color: white;
-  border: none;
+  background: transparent;
+  color: #e74c3c;
+  border: 1px solid #fecaca;
   padding: 8px 14px;
-  border-radius: 4px;
+  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
-  min-height: 44px;
-  font-size: 0.9rem;
+  transition: 0.2s;
 }
 
-.logout-btn:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
+.logout-btn:hover {
+  background: #fef2f2;
+  border-color: #e74c3c;
 }
 
-/* ── Hamburger button (hidden on desktop) ────────────── */
 .hamburger {
   display: none;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   gap: 5px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.hamburger:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 2px;
-  border-radius: 4px;
+  padding: 8px;
 }
 
 .hamburger-line {
   display: block;
-  width: 22px;
-  height: 2px;
-  background: white;
+  width: 24px;
+  height: 2.5px;
+  background: #534AB7;
   border-radius: 2px;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: 0.3s;
 }
 
-/* Animate hamburger to X when menu is open */
-.hamburger-line:nth-child(1).open { transform: translateY(7px) rotate(45deg); }
-.hamburger-line:nth-child(2).open { opacity: 0; }
-.hamburger-line:nth-child(3).open { transform: translateY(-7px) rotate(-45deg); }
+.hamburger-line.open:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+.hamburger-line.open:nth-child(2) { opacity: 0; }
+.hamburger-line.open:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
 
-/* ── Mobile dropdown (hidden on desktop) ─────────────── */
 .mobile-menu {
-  display: none;
+  display: flex;
   flex-direction: column;
-  background: #34495e;
+  background: #3C3489;
   position: sticky;
-  top: 57px;
-  z-index: 99;
-  padding: 4px 0 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  top: 72px;
+  z-index: 999;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-menu a {
-  color: white;
-  cursor: pointer;
+  padding: 18px 24px;
   text-decoration: none;
-  padding: 0 24px;
-  font-size: 1rem;
-  opacity: 0.9;
-  min-height: 52px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.mobile-menu a:hover,
-.mobile-menu a:focus-visible {
+.mobile-menu a:hover {
   background: rgba(255, 255, 255, 0.1);
-  opacity: 1;
 }
+
+.mobile-menu .manager-link-mobile { color: #FAC775; }
 
 .mobile-menu-footer {
+  padding: 16px 24px;
+  background: rgba(0, 0, 0, 0.1);
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  margin-top: 4px;
-  gap: 12px;
+  align-items: center;
 }
 
-.mobile-user {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.6);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.mobile-user { font-size: 0.8rem; color: #CECBF6; font-weight: 600; }
+
+.logout-btn-mobile {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 700;
 }
 
-/* ── Responsive breakpoints ──────────────────────────── */
-@media (max-width: 768px) {
-  .nav-links,
-  .nav-right {
-    display: none;
-  }
+.nav-logo:focus-visible,
+.nav-links a:focus-visible,
+.logout-btn:focus-visible,
+.hamburger:focus-visible,
+.mobile-menu a:focus-visible,
+.logout-btn-mobile:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
 
-  .hamburger {
-    display: flex;
-  }
-
-  .mobile-menu {
-    display: flex;
-  }
-
-  .global-nav {
-    padding: 12px 16px;
-  }
+@media (max-width: 900px) {
+  .nav-links, .nav-right { display: none; }
+  .hamburger { display: flex; }
 }
 </style>
