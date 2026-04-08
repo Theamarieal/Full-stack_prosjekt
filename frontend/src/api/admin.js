@@ -23,3 +23,8 @@ export async function toggleUserActive(userId, active) {
 export async function deleteUser(userId) {
   await api.delete(`/admin/users/${userId}`)
 }
+
+export async function createOrganization(data) {
+  const response = await api.post('/admin/organizations', data)
+  return response.data
+}
