@@ -5,13 +5,16 @@
         <h2>Training and Document Storage</h2>
         <p>
           Access policies, complete training materials, and review training records for
-          <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong
-          >.
+          <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong>.
         </p>
       </div>
 
-      <p v-if="actionMessage" class="ok-text">{{ actionMessage }}</p>
-      <p v-if="actionError" class="warning-text">{{ actionError }}</p>
+      <p v-if="actionMessage" class="ok-text feedback-message" role="status" aria-live="polite">
+        {{ actionMessage }}
+      </p>
+      <p v-if="actionError" class="warning-text feedback-message" role="alert">
+        {{ actionError }}
+      </p>
 
       <div v-if="canManage" class="manager-tools-section">
         <h2>Management</h2>
@@ -20,46 +23,76 @@
           <h3>Add new document</h3>
 
           <div class="form-grid">
-            <input v-model="newDocument.title" type="text" placeholder="Title" />
+            <div class="form-group">
+              <label for="document-title">Title</label>
+              <input id="document-title" v-model="newDocument.title" type="text" placeholder="Title" />
+            </div>
 
-            <select v-model="newDocument.type">
-              <option value="POLICY">Policy</option>
-              <option value="TRAINING">Training Material</option>
-            </select>
+            <div class="form-group">
+              <label for="document-type">Document type</label>
+              <select id="document-type" v-model="newDocument.type">
+                <option value="POLICY">Policy</option>
+                <option value="TRAINING">Training Material</option>
+              </select>
+            </div>
           </div>
 
           <div class="form-grid">
-            <select v-model="newDocument.completionType" :disabled="newDocument.type === 'POLICY'">
-              <option v-if="newDocument.type === 'POLICY'" value="READ_ACKNOWLEDGE">
-                Read and acknowledge
-              </option>
+            <div class="form-group">
+              <label for="completion-type">Completion type</label>
+              <select
+                id="completion-type"
+                v-model="newDocument.completionType"
+                :disabled="newDocument.type === 'POLICY'"
+              >
+                <option v-if="newDocument.type === 'POLICY'" value="READ_ACKNOWLEDGE">
+                  Read and acknowledge
+                </option>
 
-              <template v-else>
-                <option value="QUIZ">Quiz-based training</option>
-                <option value="PRACTICAL_SIGN_OFF">Practical sign-off</option>
-              </template>
-            </select>
+                <template v-else>
+                  <option value="QUIZ">Quiz-based training</option>
+                  <option value="PRACTICAL_SIGN_OFF">Practical sign-off</option>
+                </template>
+              </select>
+            </div>
 
             <div></div>
           </div>
 
-          <input v-model="newDocument.description" type="text" placeholder="Short description" />
+          <div class="form-group">
+            <label for="document-description">Short description</label>
+            <input
+              id="document-description"
+              v-model="newDocument.description"
+              type="text"
+              placeholder="Short description"
+            />
+          </div>
 
-          <textarea
-            v-model="newDocument.content"
-            rows="8"
-            placeholder="Write the document content here..."
-          />
+          <div class="form-group">
+            <label for="document-content">Document content</label>
+            <textarea
+              id="document-content"
+              v-model="newDocument.content"
+              rows="8"
+              placeholder="Write the document content here..."
+            />
+          </div>
 
           <div class="file-upload-row">
-            <label class="file-upload-label">Upload PDF or document</label>
+            <label class="file-upload-label" for="document-file">Upload PDF or document</label>
 
             <div class="file-upload-box">
-              <input ref="fileInputRef" type="file" @change="handleFileUpload" />
+              <input id="document-file" ref="fileInputRef" type="file" @change="handleFileUpload" />
 
               <div v-if="selectedFileName" class="selected-file-chip">
                 <span>{{ selectedFileName }}</span>
-                <button type="button" class="remove-file-button" @click="clearSelectedFile">
+                <button
+                  type="button"
+                  class="remove-file-button"
+                  @click="clearSelectedFile"
+                  aria-label="Remove selected file"
+                >
                   ✕
                 </button>
               </div>
@@ -68,8 +101,12 @@
 
           <button class="primary-button" @click="createDocument">Save document</button>
 
-          <p v-if="managerMessage" class="ok-text">{{ managerMessage }}</p>
-          <p v-if="managerError" class="warning-text">{{ managerError }}</p>
+          <p v-if="managerMessage" class="ok-text feedback-message" role="status" aria-live="polite">
+            {{ managerMessage }}
+          </p>
+          <p v-if="managerError" class="warning-text feedback-message" role="alert">
+            {{ managerError }}
+          </p>
         </div>
       </div>
 
@@ -236,14 +273,17 @@
             <h2>Team Certifications</h2>
 
             <div class="filters">
+              <label class="sr-only" for="employee-filter">Search by email</label>
               <input
+                id="employee-filter"
                 v-model="employeeFilter"
                 type="text"
                 class="filter-input"
                 placeholder="Search by email"
               />
 
-              <select v-model="selectedEmployee" class="filter-select">
+              <label class="sr-only" for="employee-select">Filter by employee</label>
+              <select id="employee-select" v-model="selectedEmployee" class="filter-select">
                 <option value="">All employees</option>
                 <option v-for="email in employeesForFilter" :key="email" :value="email">
                   {{ email.split('@')[0] }}
@@ -256,10 +296,10 @@
             <table v-if="filteredTeamCertifications.length" class="team-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Certification</th>
-                  <th>Training</th>
-                  <th>Issued</th>
+                  <th scope="col">Employee</th>
+                  <th scope="col">Certification</th>
+                  <th scope="col">Training</th>
+                  <th scope="col">Issued</th>
                 </tr>
               </thead>
               <tbody>
@@ -281,14 +321,21 @@
             <h2>Team Policy Acknowledgements</h2>
 
             <div class="filters">
+              <label class="sr-only" for="policy-employee-filter">Search by email</label>
               <input
+                id="policy-employee-filter"
                 v-model="policyEmployeeFilter"
                 type="text"
                 class="filter-input"
                 placeholder="Search by email"
               />
 
-              <select v-model="selectedPolicyEmployee" class="filter-select">
+              <label class="sr-only" for="policy-employee-select">Filter by employee</label>
+              <select
+                id="policy-employee-select"
+                v-model="selectedPolicyEmployee"
+                class="filter-select"
+              >
                 <option value="">All employees</option>
                 <option v-for="email in policyEmployees" :key="email" :value="email">
                   {{ email.split('@')[0] }}
@@ -301,9 +348,9 @@
             <table v-if="filteredTeamAcknowledgements.length" class="team-table">
               <thead>
                 <tr>
-                  <th>Employee</th>
-                  <th>Policy</th>
-                  <th>Acknowledged</th>
+                  <th scope="col">Employee</th>
+                  <th scope="col">Policy</th>
+                  <th scope="col">Acknowledged</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,7 +372,7 @@
       <div class="modal large-modal">
         <div class="card-header">
           <h3>{{ selectedDocument.title }}</h3>
-          <button class="close-button" @click="closeDocument">✕</button>
+          <button class="close-button" @click="closeDocument" aria-label="Close document">✕</button>
         </div>
 
         <p class="card-description">{{ selectedDocument.description }}</p>
@@ -350,7 +397,7 @@
       <div class="modal">
         <div class="card-header">
           <h3>{{ selectedTraining.title }} {{ canTakeQuiz ? 'Quiz' : 'Quiz Overview' }}</h3>
-          <button class="close-button" @click="closeQuiz">✕</button>
+          <button class="close-button" @click="closeQuiz" aria-label="Close quiz">✕</button>
         </div>
 
         <div v-if="!quizQuestions.length" class="empty-state">
@@ -427,7 +474,11 @@
           Submit Quiz
         </button>
 
-        <p v-if="quizResult" :class="quizResult.passed ? 'ok-text' : 'warning-text'">
+        <p
+          v-if="quizResult"
+          :class="quizResult.passed ? 'ok-text feedback-message' : 'warning-text feedback-message'"
+          :role="quizResult.passed ? 'status' : 'alert'"
+        >
           {{ quizResult.message }}
         </p>
       </div>
@@ -437,31 +488,62 @@
       <div class="modal">
         <div class="card-header">
           <h3>Add Quiz Question</h3>
-          <button class="close-button" @click="closeQuestionManager">✕</button>
+          <button
+            class="close-button"
+            @click="closeQuestionManager"
+            aria-label="Close question manager"
+          >
+            ✕
+          </button>
         </div>
 
         <p class="card-description">
-          Add a new quiz question for <strong>{{ questionDocument.title }}</strong
-          >.
+          Add a new quiz question for <strong>{{ questionDocument.title }}</strong>.
         </p>
 
-        <textarea v-model="newQuestion.question" rows="3" placeholder="Question" />
-        <input v-model="newQuestion.optionA" type="text" placeholder="Option A" />
-        <input v-model="newQuestion.optionB" type="text" placeholder="Option B" />
-        <input v-model="newQuestion.optionC" type="text" placeholder="Option C" />
-        <input v-model="newQuestion.optionD" type="text" placeholder="Option D" />
+        <div class="form-group">
+          <label for="quiz-question">Question</label>
+          <textarea id="quiz-question" v-model="newQuestion.question" rows="3" placeholder="Question" />
+        </div>
 
-        <select v-model="newQuestion.correctAnswer">
-          <option value="A">Correct answer: A</option>
-          <option value="B">Correct answer: B</option>
-          <option value="C">Correct answer: C</option>
-          <option value="D">Correct answer: D</option>
-        </select>
+        <div class="form-group">
+          <label for="option-a">Option A</label>
+          <input id="option-a" v-model="newQuestion.optionA" type="text" placeholder="Option A" />
+        </div>
+
+        <div class="form-group">
+          <label for="option-b">Option B</label>
+          <input id="option-b" v-model="newQuestion.optionB" type="text" placeholder="Option B" />
+        </div>
+
+        <div class="form-group">
+          <label for="option-c">Option C</label>
+          <input id="option-c" v-model="newQuestion.optionC" type="text" placeholder="Option C" />
+        </div>
+
+        <div class="form-group">
+          <label for="option-d">Option D</label>
+          <input id="option-d" v-model="newQuestion.optionD" type="text" placeholder="Option D" />
+        </div>
+
+        <div class="form-group">
+          <label for="correct-answer">Correct answer</label>
+          <select id="correct-answer" v-model="newQuestion.correctAnswer">
+            <option value="A">Correct answer: A</option>
+            <option value="B">Correct answer: B</option>
+            <option value="C">Correct answer: C</option>
+            <option value="D">Correct answer: D</option>
+          </select>
+        </div>
 
         <button class="primary-button" @click="saveQuestion">Save Question</button>
 
-        <p v-if="questionMessage" class="ok-text">{{ questionMessage }}</p>
-        <p v-if="questionError" class="warning-text">{{ questionError }}</p>
+        <p v-if="questionMessage" class="ok-text feedback-message" role="status" aria-live="polite">
+          {{ questionMessage }}
+        </p>
+        <p v-if="questionError" class="warning-text feedback-message" role="alert">
+          {{ questionError }}
+        </p>
       </div>
     </div>
 
@@ -469,28 +551,43 @@
       <div class="modal">
         <div class="card-header">
           <h3>Approve Practical Training</h3>
-          <button class="close-button" @click="closePracticalModal">✕</button>
+          <button
+            class="close-button"
+            @click="closePracticalModal"
+            aria-label="Close practical training modal"
+          >
+            ✕
+          </button>
         </div>
 
         <p class="card-description">
           Select an employee and approve practical training for
-          <strong>{{ practicalDocument.title }}</strong
-          >.
+          <strong>{{ practicalDocument.title }}</strong>.
         </p>
 
-        <select v-model="practicalEmployeeId">
-          <option value="" disabled>Select employee</option>
-          <option v-for="employee in employees" :key="employee.id" :value="employee.id">
-            {{ employee.email }}
-          </option>
-        </select>
+        <div class="form-group">
+          <label for="practical-employee">Employee</label>
+          <select id="practical-employee" v-model="practicalEmployeeId">
+            <option value="" disabled>Select employee</option>
+            <option v-for="employee in employees" :key="employee.id" :value="employee.id">
+              {{ employee.email }}
+            </option>
+          </select>
+        </div>
 
-        <textarea v-model="practicalNote" rows="4" placeholder="Optional manager note" />
+        <div class="form-group">
+          <label for="practical-note">Manager note</label>
+          <textarea id="practical-note" v-model="practicalNote" rows="4" placeholder="Optional manager note" />
+        </div>
 
         <button class="primary-button" @click="approvePracticalTraining">Approve</button>
 
-        <p v-if="practicalMessage" class="ok-text">{{ practicalMessage }}</p>
-        <p v-if="practicalError" class="warning-text">{{ practicalError }}</p>
+        <p v-if="practicalMessage" class="ok-text feedback-message" role="status" aria-live="polite">
+          {{ practicalMessage }}
+        </p>
+        <p v-if="practicalError" class="warning-text feedback-message" role="alert">
+          {{ practicalError }}
+        </p>
       </div>
     </div>
   </div>
@@ -952,6 +1049,43 @@ onMounted(loadData)
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
+  background: #f7f6f2;
+  min-height: 100vh;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.feedback-message {
+  margin-top: 12px;
+}
+
+.selected-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #eef4ff;
+  color: #1d4ed8;
+  border: 1px solid #c7d7fe;
+  border-radius: 999px;
+  padding: 8px 12px;
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.primary-button:focus-visible,
+.secondary-button:focus-visible,
+.close-button:focus-visible,
+.text-button:focus-visible,
+.remove-file-button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
 .training-content {
@@ -1151,6 +1285,13 @@ onMounted(loadData)
   font-size: 1.2rem;
 }
 
+h3 {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
 .cert-body h3 {
   margin: 0 0 4px;
 }
@@ -1187,18 +1328,6 @@ onMounted(loadData)
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.selected-file-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  background: #eef4ff;
-  color: #1d4ed8;
-  border: 1px solid #c7d7fe;
-  border-radius: 999px;
-  padding: 8px 12px;
-  width: fit-content;
 }
 
 .remove-file-button {
@@ -1379,6 +1508,10 @@ textarea {
     align-items: stretch;
   }
 
+  .filter-input {
+    max-width: none;
+  }
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
@@ -1386,6 +1519,27 @@ textarea {
   .card-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .primary-button,
+  .secondary-button {
+    width: 100%;
+  }
+
+  .overlay {
+    padding: 12px;
+  }
+
+  .modal,
+  .large-modal {
+    width: 100%;
+    max-height: 90vh;
+    padding: 16px;
   }
 }
 </style>
