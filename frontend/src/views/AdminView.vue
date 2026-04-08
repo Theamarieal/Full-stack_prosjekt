@@ -1,100 +1,152 @@
 <template>
   <div class="admin-wrapper">
     <div class="admin-container">
-      <h2>User Management</h2>
+      <h1>User Management</h1>
       <p class="subtitle">Admin panel: manage users and roles</p>
 
-      <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
-      <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+      <p v-if="successMessage" class="success-message" role="status" aria-live="polite">
+        <span aria-hidden="true">✓ </span>{{ successMessage }}
+      </p>
+      <p v-if="errorMessage" class="error-message" role="alert">
+        <span aria-hidden="true">⚠ </span>{{ errorMessage }}
+      </p>
 
-      <section class="card">
-        <h3>Create new user</h3>
+      <section class="card" aria-labelledby="create-user-heading">
+        <h2 id="create-user-heading">Create new user</h2>
+
         <div class="form-group">
-          <label>E-mail</label>
-          <input v-model="newUser.email" type="email" placeholder="name@bedrift.no" />
+          <label for="new-user-email">E-mail</label>
+          <input
+            id="new-user-email"
+            v-model="newUser.email"
+            type="email"
+            placeholder="name@bedrift.no"
+            autocomplete="email"
+            :aria-invalid="!!errorMessage"
+            :aria-describedby="errorMessage ? 'admin-form-error' : undefined"
+          />
         </div>
+
         <div class="form-group">
-          <label>Password</label>
-          <input v-model="newUser.password" type="password" placeholder="At least 8 characters" />
-          <ul class="password-requirements">
+          <label for="new-user-password">Password</label>
+          <input
+            id="new-user-password"
+            v-model="newUser.password"
+            type="password"
+            placeholder="At least 8 characters"
+            autocomplete="new-password"
+            :aria-describedby="'password-rules'"
+          />
+          <ul id="password-rules" class="password-requirements">
             <li :class="{ met: newUser.password.length >= 8 }">At least 8 characters</li>
             <li :class="{ met: /[A-Z]/.test(newUser.password) }">At least one uppercase letter</li>
             <li :class="{ met: /[0-9]/.test(newUser.password) }">At least one number</li>
           </ul>
         </div>
+
         <div class="form-group">
-          <label>Confirm password</label>
-          <input v-model="newUser.confirmPassword" type="password" placeholder="Repeat your password" />
-          <p v-if="newUser.confirmPassword && newUser.password !== newUser.confirmPassword" class="field-error">
+          <label for="new-user-confirm-password">Confirm password</label>
+          <input
+            id="new-user-confirm-password"
+            v-model="newUser.confirmPassword"
+            type="password"
+            placeholder="Repeat your password"
+            autocomplete="new-password"
+            :aria-invalid="!!(newUser.confirmPassword && newUser.password !== newUser.confirmPassword)"
+            :aria-describedby="newUser.confirmPassword && newUser.password !== newUser.confirmPassword ? 'confirm-password-error' : undefined"
+          />
+          <p
+            v-if="newUser.confirmPassword && newUser.password !== newUser.confirmPassword"
+            id="confirm-password-error"
+            class="field-error"
+            role="alert"
+          >
             Passwords do not match.
           </p>
         </div>
+
         <div class="form-group">
-          <label>Role</label>
-          <select v-model="newUser.role">
+          <label for="new-user-role">Role</label>
+          <select id="new-user-role" v-model="newUser.role">
             <option value="EMPLOYEE">Employee</option>
             <option value="MANAGER">Manager</option>
             <option value="ADMIN">Admin</option>
           </select>
         </div>
-        <button @click="handleCreateUser" :disabled="loading">
+
+        <button @click="handleCreateUser" :disabled="loading" class="primary-btn">
           {{ loading ? 'Creating...' : 'Create user' }}
         </button>
+
+        <p v-if="errorMessage" id="admin-form-error" class="sr-only">
+          {{ errorMessage }}
+        </p>
       </section>
 
-      <section class="card">
-        <h3>All users</h3>
+      <section class="card" aria-labelledby="all-users-heading">
+        <h2 id="all-users-heading">All users</h2>
         <p v-if="users.length === 0" class="empty-state">No users found.</p>
-        <table v-else>
-          <thead>
-          <tr>
-            <th>E-mail</th>
-            <th>Status</th>
-            <th>Role</th>
-            <th>Change role</th>
-            <th>Actions</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="user in users" :key="user.id" :class="{ 'row-inactive': !user.active }">
-            <td>{{ user.email }}</td>
-            <td>
-                <span :class="['status-badge', user.active ? 'badge-active' : 'badge-inactive']">
-                  {{ user.active ? 'Active' : 'Inactive' }}
-                </span>
-            </td>
-            <td>
-              <span :class="['role-badge', roleBadgeClass(user.role)]">{{ user.role }}</span>
-            </td>
-            <td>
-              <div class="role-change">
-                <select v-model="user.pendingRole" :disabled="!user.active">
-                  <option value="EMPLOYEE">Employee</option>
-                  <option value="MANAGER">Manager</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-                <button
-                    class="btn-save"
-                    @click="handleChangeRole(user)"
-                    :disabled="user.pendingRole === user.role || !user.active"
-                >
-                  Save
-                </button>
-              </div>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-deactivate" @click="handleToggleActive(user)">
-                  {{ user.active ? 'Deactivate' : 'Activate' }}
-                </button>
-                <button class="btn-delete" @click="handleDeleteUser(user)">
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+
+        <div v-else class="table-wrapper">
+          <table>
+            <caption class="sr-only">List of users with status, role, role change and actions</caption>
+            <thead>
+              <tr>
+                <th scope="col">E-mail</th>
+                <th scope="col">Status</th>
+                <th scope="col">Role</th>
+                <th scope="col">Change role</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in users" :key="user.id" :class="{ 'row-inactive': !user.active }">
+                <td data-label="E-mail">{{ user.email }}</td>
+                <td data-label="Status">
+                  <span :class="['status-badge', user.active ? 'badge-active' : 'badge-inactive']">
+                    {{ user.active ? 'Active' : 'Inactive' }}
+                  </span>
+                </td>
+                <td data-label="Role">
+                  <span :class="['role-badge', roleBadgeClass(user.role)]">
+                    {{ user.role }}
+                  </span>
+                </td>
+                <td data-label="Change role">
+                  <div class="role-change">
+                    <label class="sr-only" :for="`role-${user.id}`">Change role for {{ user.email }}</label>
+                    <select
+                      :id="`role-${user.id}`"
+                      v-model="user.pendingRole"
+                      :disabled="!user.active"
+                    >
+                      <option value="EMPLOYEE">Employee</option>
+                      <option value="MANAGER">Manager</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                    <button
+                      class="btn-save"
+                      @click="handleChangeRole(user)"
+                      :disabled="user.pendingRole === user.role || !user.active"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </td>
+                <td data-label="Actions">
+                  <div class="action-buttons">
+                    <button class="btn-deactivate" @click="handleToggleActive(user)">
+                      {{ user.active ? 'Deactivate' : 'Activate' }}
+                    </button>
+                    <button class="btn-delete" @click="handleDeleteUser(user)">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   </div>
@@ -200,19 +252,20 @@ async function handleChangeRole(user) {
     user.role = user.pendingRole
     showSuccess(`Role updated to ${user.role} for ${user.email}.`)
   } catch {
-    showError('Could not update role. Try again.')
+    window.alert('Could not update role. Try again.')
   }
 }
 
 async function handleToggleActive(user) {
   const action = user.active ? 'deactivate' : 'activate'
   if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) return
+
   try {
     await toggleUserActive(user.id, !user.active)
     user.active = !user.active
     showSuccess(`User ${user.email} ${user.active ? 'activated' : 'deactivated'}.`)
   } catch {
-    showError(`Could not ${action} user. Try again.`)
+    window.alert(`Could not ${action} user. Try again.`)
   }
 }
 
@@ -224,7 +277,7 @@ async function handleDeleteUser(user) {
     await fetchUsers()
   } catch (err) {
     const message = err.response?.data?.error || 'Could not delete user. Try again.'
-    showError(message)
+    window.alert(message)
   }
 }
 
@@ -236,26 +289,37 @@ onMounted(fetchUsers)
   display: flex;
   justify-content: center;
   padding: 2rem 1rem;
+  background: #f7f6f2;
+  min-height: 100vh;
 }
 
 .admin-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
+  color: #3C3489;
+  font-size: 2rem;
 }
 
 h2 {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  color: #3C3489;
 }
 
 .subtitle {
-  color: #666;
+  color: #4b5563;
   margin-bottom: 1.5rem;
 }
 
 .card {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(60, 52, 137, 0.06);
+  border: 1px solid #e0dfd8;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -274,44 +338,59 @@ h3 {
 }
 
 label {
-  font-weight: bold;
-  font-size: 0.9rem;
-  margin-bottom: 0.3rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+  color: #3C3489;
 }
 
 input,
 select {
-  padding: 0.6rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 0.8rem 0.9rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
   font-size: 1rem;
+  background: #fafaf8;
+  width: 100%;
 }
 
-button {
-  padding: 0.7rem 1.4rem;
-  background-color: #4caf50;
+input:focus,
+select:focus,
+button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.primary-btn {
+  padding: 0.85rem 1.4rem;
+  background-color: #534AB7;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   margin-top: 0.5rem;
 }
 
+.primary-btn:hover {
+  background: #3C3489;
+}
+
 button:disabled {
-  background-color: #ccc;
+  background-color: #c7c7c7;
   cursor: not-allowed;
 }
 
 .password-requirements {
   list-style: none;
   padding: 0;
-  margin: 0.4rem 0 0 0;
-  font-size: 0.8rem;
+  margin: 0.5rem 0 0 0;
+  font-size: 0.85rem;
 }
 
 .password-requirements li {
-  color: #999;
+  color: #6b7280;
   padding: 2px 0;
 }
 
@@ -320,7 +399,8 @@ button:disabled {
 }
 
 .password-requirements li.met {
-  color: #27ae60;
+  color: #166534;
+  font-weight: 600;
 }
 
 .password-requirements li.met::before {
@@ -328,128 +408,199 @@ button:disabled {
 }
 
 .field-error {
-  color: #d32f2f;
-  font-size: 0.8rem;
-  margin-top: 4px;
+  color: #991b1b;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 760px;
 }
 
 th {
   text-align: left;
-  padding: 0.6rem 0.8rem;
-  background: #f0f0f0;
-  font-size: 0.85rem;
-  color: #555;
-}
-
-td {
-  padding: 0.7rem 0.8rem;
-  border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
-  vertical-align: middle;
+  padding: 0.8rem;
+  background: #f3f4f6;
+  font-size: 0.9rem;
+  color: #374151;
 }
 
 .row-inactive {
-  opacity: 0.5;
+  opacity: 0.65;
 }
 
 .role-change {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .role-change select {
-  padding: 0.4rem;
-  font-size: 0.9rem;
+  min-width: 140px;
 }
 
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-save,
+.btn-deactivate,
+.btn-delete {
+  padding: 0.55rem 0.9rem;
+  font-size: 0.9rem;
+  margin-top: 0;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.role-badge,
+.status-badge {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.badge-inactive {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.empty-state {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .btn-save {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  margin-top: 0;
+  background: #6b7280;
 }
 
 .btn-deactivate {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  margin-top: 0;
-  background-color: #f39c12;
+  background-color: #d97706;
 }
 
 .btn-delete {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.85rem;
-  margin-top: 0;
-  background-color: #e74c3c;
-}
-
-.role-badge {
-  padding: 0.25rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
+  background-color: #dc2626;
 }
 
 .badge-admin {
   background: #fdecea;
-  color: #c0392b;
+  color: #b91c1c;
 }
 
 .badge-manager {
-  background: #fff8e1;
-  color: #f39c12;
+  background: #fff7db;
+  color: #b45309;
 }
 
 .badge-employee {
   background: #e8f5e9;
-  color: #27ae60;
-}
-
-.status-badge {
-  padding: 0.25rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: bold;
+  color: #166534;
 }
 
 .badge-active {
   background: #e8f5e9;
-  color: #27ae60;
-}
-
-.badge-inactive {
-  background: #f0f0f0;
-  color: #999;
-}
-
-.empty-state {
-  color: #999;
-  font-style: italic;
+  color: #166534;
 }
 
 .success-message {
-  color: #27ae60;
-  background: #e8f5e9;
-  padding: 0.5rem;
-  border-radius: 4px;
+  color: #166534;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
   margin-bottom: 1rem;
+  font-weight: 600;
 }
 
 .error-message {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 0.5rem;
-  border-radius: 4px;
+  color: #991b1b;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
   margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+td {
+  padding: 0.9rem 0.8rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.btn-save:focus-visible,
+.btn-deactivate:focus-visible,
+.btn-delete:focus-visible,
+.primary-btn:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.btn-save:hover {
+  background: #4b5563;
+}
+
+.btn-deactivate:hover {
+  background: #b45309;
+}
+
+.btn-delete:hover {
+  background: #b91c1c;
+}
+
+@media (max-width: 768px) {
+  .admin-wrapper {
+    padding: 1rem 0.75rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+
+  .action-buttons,
+  .role-change {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-save,
+  .btn-deactivate,
+  .btn-delete {
+    width: 100%;
+  }
+
+  .role-change select {
+    width: 100%;
+    min-width: 0;
+  }
 }
 </style>
