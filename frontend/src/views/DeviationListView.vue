@@ -1,76 +1,99 @@
 <template>
-  <div class="deviation-list">
-    <div class="header">
-      <h1>Deviations</h1>
-      <button class="btn-primary" @click="router.push('/deviations/new')">+ Report deviation</button>
-    </div>
-
-    <div class="filters">
-      <div class="filter-group">
-        <label>Status</label>
-        <select v-model="filterStatus">
-          <option value="">All statuses</option>
-          <option value="OPEN">Open</option>
-          <option value="IN_PROGRESS">In progress</option>
-          <option value="RESOLVED">Resolved</option>
-        </select>
+  <div class="deviation-page">
+    <header class="page-header-section">
+      <div class="header-main">
+        <h1>Deviations</h1>
+        <p class="subtitle">Monitor and resolve quality gaps</p>
       </div>
+      <button type="button" class="add-btn" @click="router.push('/deviations/new')">
+        <span class="plus-icon" aria-hidden="true">+</span> Report deviation
+      </button>
+    </header>
 
-      <div class="filter-group">
-        <label>Module</label>
-        <select v-model="filterModule">
-          <option value="">All modules</option>
-          <option value="IK_MAT">IK-Mat</option>
-          <option value="IK_ALKOHOL">IK-Alkohol</option>
-        </select>
+    <div class="filter-wrapper">
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label for="filter-status">Status</label>
+          <select id="filter-status" v-model="filterStatus">
+            <option value="">All statuses</option>
+            <option value="OPEN">Open / Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-module">Department/Module</label>
+          <select id="filter-module" v-model="filterModule">
+            <option value="">All modules</option>
+            <option value="IK_MAT">IK-Mat (Food Safety)</option>
+            <option value="IK_ALKOHOL">IK-Alkohol (Alcohol)</option>
+          </select>
+        </div>
       </div>
     </div>
 
     <LoadingSpinner v-if="loading" message="Loading deviations..." />
 
-    <div v-else-if="error" class="error-banner">{{ error }}</div>
+    <div v-else-if="error" class="error-banner" role="alert">
+      <span aria-hidden="true">⚠ </span>{{ error }}
+    </div>
 
-    <div v-else-if="filtered.length === 0" class="empty">
-      No deviations found.
+    <div v-else-if="filtered.length === 0" class="empty-state" role="status">
+      <div class="empty-icon" aria-hidden="true">🫸🫷</div>
+      <p>No deviations found. Everything is looking good!</p>
     </div>
 
     <div v-else class="deviation-cards">
-      <div
+      <section
         v-for="deviation in filtered"
         :key="deviation.id"
         class="deviation-card"
         :class="statusClass(deviation.status)"
+        :aria-label="`Deviation: ${deviation.title}`"
       >
-        <div class="card-header">
-          <h3>{{ deviation.title }}</h3>
+        <div class="card-top">
+          <div class="card-title-area">
+            <span class="module-pill">{{ formatModule(deviation.module) }}</span>
+            <h3>{{ deviation.title }}</h3>
+          </div>
           <span class="status-badge" :class="statusClass(deviation.status)">
             {{ formatStatus(deviation.status) }}
           </span>
         </div>
 
-        <p class="module-tag">{{ formatModule(deviation.module) }}</p>
         <p v-if="deviation.description" class="description">{{ deviation.description }}</p>
-        <p class="meta">
-          Reported: {{ formatDate(deviation.createdAt) }}
-          <span v-if="deviation.reportedBy"> by {{ deviation.reportedBy.email }}</span>
-        </p>
 
-        <div v-if="updateError === deviation.id" class="error-inline">
-          Failed to update status. Please try again.
+        <div class="card-meta">
+          <div class="meta-item">
+            <span class="meta-label">Reported:</span>
+            <span>{{ formatDate(deviation.createdAt) }}</span>
+          </div>
+          <div class="meta-item" v-if="deviation.reportedBy">
+            <span class="meta-label">By:</span>
+            <span>{{ deviation.reportedBy.email.split('@')[0] }}</span>
+          </div>
         </div>
 
-        <div v-if="isManagerOrAdmin" class="status-actions">
-          <label>Update status:</label>
-          <select
-            :value="deviation.status"
-            @change="updateStatus(deviation.id, $event.target.value)"
-          >
-            <option value="OPEN">Open</option>
-            <option value="IN_PROGRESS">In progress</option>
-            <option value="RESOLVED">Resolved</option>
-          </select>
+        <div v-if="isManagerOrAdmin" class="manager-actions">
+          <div v-if="updateError === deviation.id" class="error-inline" role="alert">
+            <span aria-hidden="true">⚠ </span>Failed to update status.
+          </div>
+          <div class="update-controls">
+            <label :for="`status-update-${deviation.id}`">Update status:</label>
+            <select
+              :id="`status-update-${deviation.id}`"
+              :value="deviation.status"
+              @change="updateStatus(deviation.id, $event.target.value)"
+              class="status-select-small"
+            >
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+            </select>
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -165,65 +188,89 @@ function formatDate(dateStr) {
 </script>
 
 <style scoped>
-.deviation-list {
+.deviation-page {
   max-width: 900px;
-  margin: 40px auto;
-  padding: 0 20px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  min-height: 100vh;
+  background-color: #f7f6f2;
 }
 
-.header {
+.page-header-section {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+
+.header-main h1 { font-size: 2rem; font-weight: 800; color: #3C3489; margin-bottom: 4px; }
+.subtitle { color:#5a529f; font-weight: 600; font-size: 0.95rem; }
+
+.add-btn {
+  background: #534AB7;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
   align-items: center;
-  margin-bottom: 24px;
+  gap: 8px;
+  transition: transform 0.2s, background 0.2s;
+}
+.add-btn:hover { transform: translateY(-2px); background: #3C3489; }
+button:focus-visible,
+select:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
-h1 {
-  color: #2c3e50;
+.filter-wrapper {
+  margin-bottom: 32px;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid #e0dfd8;
 }
 
-.filters {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .filter-group label {
+  display: block;
+  font-weight: 700;
+  color: #3C3489;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #2c3e50;
+  margin-bottom: 8px;
 }
 
 select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  background: white;
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid #e0dfd8;
+  border-radius: 10px;
+  background: #fafaf8;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.deviation-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.deviation-cards { display: flex; flex-direction: column; gap: 20px; }
 
 .deviation-card {
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  border-left: 4px solid #ddd;
+  border: 1px solid #e0dfd8;
+  border-left: 6px solid #ddd;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
 }
 
 .deviation-card.status-open {
-  border-left-color: #dc2626;
+  border-left-color: #ef4444;
 }
 
 .deviation-card.status-in-progress {
@@ -231,151 +278,100 @@ select {
 }
 
 .deviation-card.status-resolved {
-  border-left-color: #16a34a;
+  border-left-color: #10b981;
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 
-.card-header h3 {
-  color: #2c3e50;
-  margin: 0;
-}
-
-.status-badge {
-  font-size: 0.8rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
-}
-
-.status-badge.status-open {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.status-badge.status-in-progress {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.status-badge.status-resolved {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.module-tag {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-bottom: 8px;
-}
-
-.description {
-  color: #4b5563;
-  margin-bottom: 8px;
-}
-
-.meta {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  margin-bottom: 12px;
+.module-pill {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #4338ca;
+  background: #f5f4ff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 4px;
+  border: 1px solid #c7d2fe;
 }
 
 .error-banner {
-  background: #fee2e2;
+  background: #fff5f5;
   border: 1px solid #fecaca;
-  color: #dc2626;
+  color: #991b1b;
   padding: 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  text-align: center;
+  border-radius: 12px;
+  font-weight: 700;
 }
 
 .error-inline {
-  color: #dc2626;
+  margin-bottom: 12px;
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.card-title-area h3 { color: #3C3489; font-weight: 800; margin: 0; }
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.status-badge.status-open {
+  background: #fff1f2;
+  color: #991b1b;
+  border-color: #fecdd3;
+}
+
+.status-badge.status-in-progress {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.status-badge.status-resolved {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.description { color: #374151; margin-bottom: 16px; line-height: 1.5; }
+.card-meta { display: flex; gap: 20px; font-size: 0.9rem; color: #4b5563; }
+.meta-label { font-weight: 700; margin-right: 4px; }
+
+.manager-actions {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.update-controls { display: flex; align-items: center; gap: 12px; }
+.update-controls label { font-size: 0.85rem; font-weight: 700; color: #3C3489; }
+
+.status-select-small {
+  padding: 6px 12px;
+  border-radius: 8px;
   font-size: 0.85rem;
-  margin-bottom: 8px;
+  width: auto;
 }
 
-.status-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
-}
-
-.status-actions label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.empty {
+.empty-state {
   text-align: center;
-  color: #6b7280;
-  padding: 40px;
+  padding: 60px;
+  background: white;
+  border-radius: 14px;
+  border: 2px dashed #d1d5db;
+  color: #374151;
 }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
 
-.btn-primary {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-}
-@media (max-width: 768px) {
-  .deviation-list {
-    padding: 0 16px;
-    margin: 16px auto;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .filters {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  select,
-  .filter-group select {
-    min-height: 44px;
-    font-size: 1rem;
-    width: 100%;
-  }
-
-  .btn-primary {
-    min-height: 44px;
-    width: 100%;
-  }
-
-  .card-header {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .status-actions {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .status-actions select {
-    min-height: 44px;
-  }
+@media (max-width: 350px) {
+  .page-header-section { flex-direction: column; gap: 16px; }
+  .add-btn { width: 100%; justify-content: center; }
+  .card-top { flex-direction: column; gap: 12px; }
 }
 </style>

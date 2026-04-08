@@ -1,52 +1,116 @@
 <template>
-  <div class="register-wrapper">
-    <div class="register-container">
-      <h2>Create user</h2>
-      <p class="subtitle">Become a part of Testrestaurant AS</p>
-
-      <form @submit.prevent="handleRegister">
-        <div class="form-group">
-          <label>E-mail</label>
-          <input v-model="email" type="email" placeholder="name@bedrift.no" required />
+  <div class="register-page">
+    <div class="register-card">
+      
+      <div class="branding">
+        <div class="logo-icon" aria-hidden="true">
+          <div class="logo-line line-1"></div>
+          <div class="logo-line line-2"></div>
+          <div class="logo-line line-3"></div>
+          <div class="logo-line line-4"></div>
+          <div class="logo-check">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <polyline points="5,12 10,17 19,7" stroke="#CECBF6" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
         </div>
+        <h1 class="app-name">Checkd</h1>
+        <p class="slogan">Kjekt. Enkelt. Ordentlig.</p>
+      </div>
 
+      <div class="header-text">
+        <h2>Create user</h2>
+        <p class="subtitle">Become a part of Everest Sushi & Fusion AS</p>
+      </div>
+
+      <form @submit.prevent="handleRegister" novalidate>
         <div class="form-group">
-          <label>Password</label>
-          <input v-model="password" type="password" placeholder="At least 8 characters" required />
-          <ul class="password-requirements">
+          <label for="reg-email">E-mail</label>
+          <input
+            id="reg-email"
+            v-model="email"
+            type="email"
+            autocomplete="email"
+            placeholder="name@restaurant.com"
+            required
+            :aria-invalid="!!error"
+            :aria-describedby="error ? 'register-error' : undefined"
+          />
+        </div>
+      
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input
+            id="reg-password"
+            v-model="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="At least 8 characters"
+            required
+            :aria-invalid="!!error"
+            :aria-describedby="error ? 'register-error password-help' : 'password-help'"
+          />
+          <ul id="password-help" class="password-requirements">
             <li :class="{ met: password.length >= 8 }">At least 8 characters</li>
             <li :class="{ met: /[A-Z]/.test(password) }">At least one uppercase letter</li>
             <li :class="{ met: /[0-9]/.test(password) }">At least one number</li>
           </ul>
         </div>
-
+      
         <div class="form-group">
-          <label>Confirm password</label>
-          <input v-model="confirmPassword" type="password" placeholder="Repeat your password" required />
-          <p v-if="confirmPassword && password !== confirmPassword" class="field-error">
+          <label for="reg-confirm-password">Confirm password</label>
+          <input
+            id="reg-confirm-password"
+            v-model="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Repeat your password"
+            required
+            :aria-invalid="!!error || (!!confirmPassword && password !== confirmPassword)"
+            :aria-describedby="[
+              'password-help',
+              error ? 'register-error' : '',
+              confirmPassword && password !== confirmPassword ? 'confirm-password-error' : ''
+            ].filter(Boolean).join(' ')"
+          />
+          <p
+            v-if="confirmPassword && password !== confirmPassword"
+            id="confirm-password-error"
+            class="field-error"
+            role="alert"
+          >
             Passwords do not match.
           </p>
         </div>
-
+      
         <div class="form-group">
-          <label>Your role</label>
-          <select v-model="role">
+          <label for="reg-role">Your role</label>
+          <select
+            id="reg-role"
+            v-model="role"
+            :aria-invalid="!!error"
+            :aria-describedby="error ? 'register-error' : undefined"
+          >
             <option value="EMPLOYEE">Employee</option>
             <option value="MANAGER">Manager</option>
           </select>
         </div>
-
-        <button type="submit" :disabled="loading">
+      
+        <button type="submit" :disabled="loading" class="register-btn">
           {{ loading ? 'Creating account...' : 'Sign me up' }}
         </button>
       </form>
 
-      <p v-if="error" class="error-message">{{ error }}</p>
+      <p v-if="error" id="register-error" class="error-msg" role="alert" aria-live="assertive">
+        <span aria-hidden="true">⚠ </span>{{ error }}
+      </p>
 
-      <div class="footer-links">
+      <div class="footer-link">
         <span>Do you already have a user? </span>
         <router-link to="/login">Log in here</router-link>
       </div>
+
     </div>
   </div>
 </template>
@@ -96,10 +160,10 @@ const handleRegister = async () => {
   loading.value = true
   try {
     const result = await auth.register(email.value, password.value, role.value, 1)
-    if (result.success) {
+    if (result?.success ?? result) {
       router.push('/')
     } else {
-      error.value = result.message || 'Something went wrong. Try again.'
+      error.value = result?.message || 'Something went wrong. Try again.'
     }
   } catch {
     error.value = 'Could not create user. Maybe e-mail is already in use?'
@@ -110,46 +174,70 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-.register-wrapper {
+.register-page {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  width: 100%;
   background-color: #f7f6f2;
-  padding: 12px;
+  padding: 20px;
 }
 
-.register-container {
-  background: white;
+.register-card {
   width: 100%;
   max-width: 440px;
-  padding: 2rem 1.5rem;
-  border-radius: 16px;
+  background: #ffffff;
   border: 1px solid #e0dfd8;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  box-shadow: 0 4px 20px rgba(60, 52, 137, 0.05);
+  display: flex;
+  flex-direction: column;
 }
 
-h2 {
-  text-align: center;
-  color: #3C3489;
-  margin-bottom: 4px;
+.branding { text-align: center; margin-bottom: 2rem; }
+
+.logo-icon {
+  position: relative;
+  width: 72px; height: 72px;
+  background: #534AB7;
+  border-radius: 20px;
+  margin: 0 auto 1rem;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
 }
 
-.subtitle {
-  text-align: center;
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 1.5rem;
-}
+.logo-line { height: 6px; border-radius: 3px; }
+.line-1 { width: 34px; background: #FAC775; opacity: 0.9; }
+.line-2 { width: 26px; background: #9FE1CB; opacity: 0.85; }
+.line-3 { width: 30px; background: #F5C4B3; opacity: 0.8; }
+.line-4 { width: 20px; background: #B5D4F4; opacity: 0.7; }
 
-.form-group {
-  margin-bottom: 1rem;
+.logo-check {
+  position: absolute; bottom: -6px; right: -6px;
+  width: 26px; height: 26px;
+  background: #26215C; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #ffffff;
 }
+.logo-check svg { width: 14px; height: 14px; }
 
-label {
-  display: block;
-  font-weight: 600;
-  font-size: 0.85rem;
-  margin-bottom: 4px;
+.app-name { font-size: 2.25rem; font-weight: 800; color: #3C3489; margin: 0; letter-spacing: -0.5px; }
+.slogan { font-size: 0.85rem; color: #5a529f; text-transform: uppercase; letter-spacing: 0.15em; }
+
+.header-text { text-align: center; margin-bottom: 1.5rem; }
+h2 { color: #3C3489; font-weight: 700; margin-bottom: 4px; }
+.subtitle { color: #4b5563; font-size: 0.95rem; }
+
+.form-group { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
+label { font-weight: 600; margin-bottom: 6px; color: #3C3489; font-size: 0.9rem; }
+input:focus, select:focus { outline: none; border-color: #7F77DD; background: #ffffff; }
+
+.register-btn {
+  width: 100%; padding: 14px; margin-top: 1rem;
+  background: #534AB7; color: white;
+  border: none; border-radius: 10px;
+  font-weight: 700; cursor: pointer; transition: background 0.2s;
 }
 
 input,
@@ -159,21 +247,19 @@ select {
   border: 1.5px solid #e0dfd8;
   border-radius: 10px;
   font-size: 16px;
+  background: #fafaf8;
+  color: #2c2c2a;
 }
 
-button {
-  width: 100%;
-  padding: 14px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-weight: 700;
-  margin-top: 1rem;
-  cursor: pointer;
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
-button:disabled {
+.register-btn:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
@@ -203,51 +289,47 @@ button:disabled {
 }
 
 .field-error {
-  color: #d32f2f;
+  color: #991b1b;
   font-size: 0.8rem;
   margin-top: 4px;
+  font-weight: 600;
 }
 
-.error-message {
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 0.5rem;
-  border-radius: 4px;
+.register-btn:hover { background: #3C3489; }
+
+.error-msg {
+  color: #991b1b;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
   margin-top: 1rem;
   text-align: center;
-  font-size: 0.9rem;
 }
 
-.footer-links {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 0.85rem;
-}
-
-a {
-  color: #4caf50;
-  text-decoration: none;
-  font-weight: bold;
-}
+.footer-link { text-align: center; margin-top: 2rem; font-size: 0.9rem; color: #4b5563; }
+.footer-link a { color: #534AB7; font-weight: 700; text-decoration: underline; }
 
 @media (max-width: 350px) {
-  .register-wrapper {
+  .register-page {
     padding: 0;
-    background: white;
+    background-color: #ffffff;
     align-items: flex-start;
   }
 
-  .register-container {
+  .register-card {
     border: none;
     border-radius: 0;
     box-shadow: none;
-    padding: 2rem 1.5rem;
     min-height: 100vh;
+    padding: 3rem 1.5rem;
     display: flex;
     flex-direction: column;
   }
 
-  .footer-links {
+  .footer-link {
     margin-top: auto;
     padding-bottom: 2rem;
   }
