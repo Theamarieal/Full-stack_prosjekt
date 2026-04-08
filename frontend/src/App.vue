@@ -74,6 +74,14 @@
         @click="menuOpen = false"
         class="manager-link-mobile"
       >Manage checklists</router-link>
+      <router-link
+        v-if="authStore.getUserRole === 'ADMIN'"
+        to="/admin"
+        @click="menuOpen = false"
+        class="admin-link-mobile"
+      >
+        Admin
+      </router-link>
       <div class="mobile-menu-footer">
         <span class="mobile-user">{{ authStore.user?.email }}</span>
         <button @click="handleLogout" class="logout-btn-mobile">Log out</button>
@@ -289,6 +297,8 @@ function navigate(path) {
 }
 
 .mobile-menu .manager-link-mobile { color: #FAC775; }
+
+.mobile-menu .admin-link-mobile { color: #fca5a5; }
 
 .mobile-menu-footer {
   padding: 16px 24px;
