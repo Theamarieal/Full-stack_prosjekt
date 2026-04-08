@@ -5,10 +5,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import ntnu.no.fs_v26.model.User;
 import ntnu.no.fs_v26.service.AdminService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,8 +29,9 @@ public class AdminController {
   @ApiResponse(responseCode = "403", description = "Access denied")
   @GetMapping("/users")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
-    return ResponseEntity.ok(adminService.getAllUsers());
+  public ResponseEntity<List<Map<String, Object>>> getAllUsers(
+      @AuthenticationPrincipal User currentUser) {
+    return ResponseEntity.ok(adminService.getAllUsers(currentUser));
   }
 
   @Operation(summary = "Create a new user", description = "Creates a user with email, password and role. Requires ADMIN role.")
@@ -37,8 +40,10 @@ public class AdminController {
   @ApiResponse(responseCode = "403", description = "Access denied")
   @PostMapping("/users")
   @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody AdminCreateUserRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createUser(request));
+  public ResponseEntity<Map<String, Object>> createUser(
+      @Valid @RequestBody AdminCreateUserRequest request,
+      @AuthenticationPrincipal User currentUser) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createUser(request, currentUser));
   }
 
   @Operation(summary = "Update user role", description = "Changes the role of a user. Requires ADMIN role.")

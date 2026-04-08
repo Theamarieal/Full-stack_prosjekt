@@ -70,7 +70,7 @@ public class DeviationService {
 
         // Security: verify deviation belongs to the user's organization
         if (!deviation.getOrganization().getId().equals(user.getOrganization().getId())) {
-            throw new IllegalArgumentException("Access denied: deviation belongs to a different organization");
+            throw new org.springframework.security.access.AccessDeniedException("Access denied: deviation belongs to a different organization");
         }
 
         deviation.setStatus(newStatus);
