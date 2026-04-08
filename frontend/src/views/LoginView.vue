@@ -27,10 +27,13 @@
             v-model="email" 
             type="email" 
             required 
-            placeholder="name@restaurant.com" 
+            placeholder="name@restaurant.com"
+            :aria-invalid="!!error"
+            :aria-describedby="error ? 'login-error' : undefined"
+            autocomplete="username"
           />
         </div>
-
+      
         <div class="form-group">
           <label for="password">Password</label>
           <input 
@@ -38,12 +41,17 @@
             v-model="password" 
             type="password" 
             required 
-            placeholder="••••••••" 
+            placeholder="••••••••"
+            :aria-invalid="!!error"
+            :aria-describedby="error ? 'login-error' : undefined"
+            autocomplete="current-password"
           />
         </div>
-
-        <div v-if="error" class="error-msg" role="alert">{{ error }}</div>
-
+      
+        <div v-if="error" id="login-error" class="error-msg" role="alert">
+          {{ error }}
+        </div>
+      
         <button type="submit" :disabled="loading" class="login-btn">
           {{ loading ? 'Logging in...' : 'Log in' }}
         </button>
@@ -136,12 +144,29 @@ const handleLogin = async () => {
 .logo-check svg { width: 14px; height: 14px; }
 
 .app-name { font-size: 2.25rem; font-weight: 800; color: #3C3489; margin: 0; letter-spacing: -0.5px; }
-.slogan { font-size: 0.85rem; color: #7F77DD; text-transform: uppercase; letter-spacing: 0.15em; }
+.slogan { font-size: 0.85rem; color: #5a529f; text-transform: uppercase; letter-spacing: 0.15em; }
 
 .form-group { display: flex; flex-direction: column; margin-bottom: 1.25rem; }
 label { font-weight: 600; margin-bottom: 6px; color: #3C3489; font-size: 0.9rem; }
-input { padding: 12px; border: 1.5px solid #e0dfd8; border-radius: 10px; font-size: 16px; width: 100%; background: #fafaf8; }
+input { padding: 12px; border: 1.5px solid #e0dfd8; border-radius: 10px; font-size: 16px; width: 100%; background: #f4f4f4; }
 input:focus { outline: none; border-color: #7F77DD; background: #ffffff; }
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.error-msg {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
 
 .login-btn {
   width: 100%; padding: 14px;
@@ -151,10 +176,10 @@ input:focus { outline: none; border-color: #7F77DD; background: #ffffff; }
 }
 .login-btn:hover { background: #3C3489; }
 
-.footer-link { text-align: center; margin-top: 2rem; font-size: 0.9rem; color: #666; }
-.footer-link a { color: #534AB7; font-weight: 600; text-decoration: none; }
+.footer-link { text-align: center; margin-top: 2rem; font-size: 0.9rem; color: #4b4463; }
+.footer-link a { color: #534AB7; font-weight: 600; text-decoration: underline; }
 
-.dev-hint { font-size: 0.75rem; color: #999; text-align: center; margin-top: 1rem; }
+.dev-hint { font-size: 0.8rem; color: #4b5563; text-align: center; margin-top: 1rem; }
 
 @media (max-width: 350px) {
   .login-page {
