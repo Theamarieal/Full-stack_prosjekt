@@ -278,8 +278,8 @@
             </thead>
             <tbody>
               <tr v-for="log in history" :key="log.id">
-                <td class="time-cell">{{ formatTime(log.recordedAt) }}</td>
-                <td>
+                <td data-label="Time" class="time-cell">{{ formatTime(log.recordedAt) }}</td>
+                <td data-label="Type">
                   <div class="tag-stack">
                     <span
                       v-for="t in log.displayTypes"
@@ -290,11 +290,17 @@
                     </span>
                   </div>
                 </td>
-                <td class="notes-cell">
+                <td data-label="Notes / Details" class="notes-cell">
                   {{ log.notes?.trim() ? log.notes : 'Ingen detaljer registrert' }}
                 </td>
-                <td class="user-cell">{{ log.recordedBy?.split('@')[0] }}</td>
-                <td v-if="canSearchHistory" class="date-cell">{{ formatDate(log.recordedAt) }}</td>
+                <td data-label="Staff" class="user-cell">{{ log.recordedBy?.split('@')[0] }}</td>
+                <td
+                  v-if="canSearchHistory"
+                  data-label="Date"
+                  class="date-cell"
+                >
+                  {{ formatDate(log.recordedAt) }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1022,11 +1028,92 @@ textarea:focus-visible {
   margin: 0 0 6px 0;
 }
 
-@media (max-width: 350px) {
-  .form-grid, .inner-grid, .manager-tools-grid { grid-template-columns: 1fr; }
-  .manager-actions { width: 100%; }
-  .apply-btn, .secondary-btn-minimal { flex: 1; }
-  .page-header-section { flex-direction: column; gap: 16px; }
-  .back-btn-minimal { width: 100%; text-align: center; }
+@media (max-width: 768px) {
+  .alcohol-page {
+    padding: 20px 12px;
+  }
+
+  .page-header-section {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .back-btn-minimal {
+    width: 100%;
+    text-align: center;
+  }
+
+  .form-grid,
+  .inner-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-tools-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manager-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .apply-btn,
+  .secondary-btn-minimal {
+    width: 100%;
+  }
+
+  .table-container {
+    overflow: visible;
+  }
+
+  .history-table,
+  .history-table thead,
+  .history-table tbody,
+  .history-table tr,
+  .history-table th,
+  .history-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .history-table {
+    min-width: 0;
+  }
+
+  .history-table thead {
+    display: none;
+  }
+
+  .history-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .history-table tr {
+    border: 1px solid #e0dfd8;
+    border-radius: 12px;
+    padding: 0.75rem;
+    background: #fff;
+  }
+
+  .history-table td {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 0.75rem 0;
+  }
+
+  .history-table td:last-child {
+    border-bottom: none;
+  }
+
+  .history-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #3C3489;
+    margin-bottom: 0.35rem;
+  }
 }
 </style>
