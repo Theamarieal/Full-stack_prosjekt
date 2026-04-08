@@ -20,6 +20,4 @@ public class AdminCreateUserRequest {
 
   @NotNull(message = "Role is required")
   private Role role;
-
-  private Long organizationId = 1L;
 }
