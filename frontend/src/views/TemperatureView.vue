@@ -271,6 +271,12 @@ select:focus {
   align-items: start;
 }
 
+.form-card,
+.table-card,
+.stat-card {
+  min-width: 0;
+}
+
 .stat-card {
   background: white; border: 1px solid #e0dfd8; border-left: 6px solid #534AB7;
   border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
@@ -331,12 +337,49 @@ td { padding: 14px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }
   border: 0;
 }
 
-@media (max-width: 900px) {
-  .temperature-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 768px) {
+  .temperature-page {
+    padding: 16px 12px;
+  }
 
-@media (max-width: 350px) {
-  .page-header-section { flex-direction: column; gap: 16px; }
-  .back-btn-minimal { width: 100%; text-align: center; }
+  .page-header-section {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .header-main h1 {
+    font-size: 1.6rem;
+    line-height: 1.2;
+  }
+
+  .back-btn-minimal {
+    width: 100%;
+    text-align: center;
+  }
+
+  .temperature-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 18px 14px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .info-tile {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  table {
+    min-width: 520px;
+  }
 }
 </style>
