@@ -74,6 +74,7 @@
                 <th scope="col">Equipment</th>
                 <th scope="col">Value</th>
                 <th scope="col">Status</th>
+                <th scope="col">User</th>
               </tr>
             </thead>
             <tbody>
@@ -86,9 +87,10 @@
                     {{ isLogDeviation(log) ? 'Deviation' : 'OK' }}
                   </span>
                 </td>
+                <td class="user-cell">{{ log.loggedBy?.email?.split('@')[0] || '-' }}</td>
               </tr>
               <tr v-if="latestLogs.length === 0">
-                <td colspan="4" class="empty-row">No readings yet.</td>
+                <td colspan="5" class="empty-row">No readings yet.</td>
               </tr>
             </tbody>
           </table>
@@ -307,6 +309,11 @@ input, select {
 .save-btn {
   background: #534AB7; color: white; border: none; padding: 14px;
   border-radius: 10px; font-weight: 700; width: 100%; cursor: pointer;
+}
+
+.user-cell {
+  color: #4b5563;
+  font-size: 0.9rem;
 }
 
 .text-link-btn { background: none; border: none; color: #534AB7; font-weight: 700; cursor: pointer; }
