@@ -813,7 +813,23 @@ onMounted(async () => {
 
 .stat-card {
   background: white; border: 1px solid #e0dfd8; border-left: 6px solid #534AB7;
-  border-radius: 14px; padding: 32px; box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
+  border-radius: 14px; padding: px; box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
+}
+
+.history-section .card-header {
+  margin-bottom: 16px;
+}
+
+.history-section .card-header h3 {
+  margin-bottom: 8px;
+}
+
+.history-section .card-header {
+  margin-bottom: 16px;
+}
+
+.history-section .card-header h3 {
+  margin-bottom: 8px;
 }
 
 .card-header h3 { color: #3C3489; font-weight: 800; margin-bottom: 24px; font-size: 1.25rem; }
@@ -925,8 +941,8 @@ textarea:focus-visible {
 }
 
 
-.manager-tools-grid { display: flex; gap: 20px; align-items: flex-end; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid #f0f0f0; }
-.manager-actions { display: flex; gap: 10px; }
+.manager-tools-grid { display: flex; gap: 16px; align-items: flex-end; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0; }
+.manager-actions { display: flex; gap: 10px; flex-wrap: wrap;}
 
 .save-btn {
   background: #534AB7;
@@ -1027,6 +1043,12 @@ textarea:focus-visible {
   color: #4b5563;
   margin: 0 0 6px 0;
 }
+
+.history-table th,
+.history-table td {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
 
 @media (max-width: 768px) {
   .alcohol-page {

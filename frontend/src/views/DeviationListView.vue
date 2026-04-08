@@ -369,7 +369,7 @@ select {
 }
 .empty-icon { font-size: 3rem; margin-bottom: 12px; }
 
-@media (max-width: 350px) {
+@media (max-width: 786px) {
   .page-header-section { flex-direction: column; gap: 16px; }
   .add-btn { width: 100%; justify-content: center; }
   .card-top { flex-direction: column; gap: 12px; }
