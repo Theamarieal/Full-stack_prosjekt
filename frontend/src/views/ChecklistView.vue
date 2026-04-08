@@ -352,7 +352,7 @@ input[type="checkbox"] {
   margin-bottom: 12px;
 }
 
-@media (max-width: 350px) {
+@media (max-width: 786px) {
   .checklist-header {
     flex-direction: column;
     gap: 16px;

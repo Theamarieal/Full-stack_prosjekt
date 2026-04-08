@@ -445,7 +445,7 @@ textarea:focus-visible {
 
 .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
 
-@media (max-width: 350px) {
+@media (max-width: 786px) {
   .form-grid-main { grid-template-columns: 1fr; }
   .list-item-card { flex-direction: column; align-items: flex-start; gap: 16px; }
   .delete-btn-minimal { width: 100%; text-align: center; }

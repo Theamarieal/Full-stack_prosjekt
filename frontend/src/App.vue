@@ -23,20 +23,33 @@
         <router-link to="/temperature">Temperature</router-link>
         <router-link to="/alcohol">Alcohol</router-link>
         <router-link to="/deviations">Deviations</router-link>
+        <router-link to="/training">Training</router-link>
 
+        <router-link
+          v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
+          to="/reports"
+          class="reports-link"
+        >
+          Reports
+        </router-link>
+      
         <router-link 
           v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
           to="/manage-checklists" 
           role="menuitem" 
           class="manager-link"
-        >Manage</router-link>
-        
+        >
+          Manage
+        </router-link>
+
         <router-link 
           v-if="authStore.getUserRole === 'ADMIN'"
           to="/admin" 
           role="menuitem" 
           class="admin-link"
-        >Admin</router-link>
+        >
+          Admin
+        </router-link>
       </div>
 
       <div class="nav-right">
@@ -68,12 +81,26 @@
       <router-link to="/temperature" @click="menuOpen = false">Temperature</router-link>
       <router-link to="/alcohol" @click="menuOpen = false">Alcohol</router-link>
       <router-link to="/deviations" @click="menuOpen = false">Deviations</router-link>
+      <router-link to="/training" @click="menuOpen = false">Training</router-link>
+
+      <router-link
+        v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
+        to="/reports"
+        @click="menuOpen = false"
+        class="reports-link-mobile"
+      >
+        Reports
+      </router-link>
+    
       <router-link
         v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
         to="/manage-checklists"
         @click="menuOpen = false"
         class="manager-link-mobile"
-      >Manage checklists</router-link>
+      >
+        Manage checklists
+      </router-link>
+    
       <router-link
         v-if="authStore.getUserRole === 'ADMIN'"
         to="/admin"
@@ -82,6 +109,7 @@
       >
         Admin
       </router-link>
+    
       <div class="mobile-menu-footer">
         <span class="mobile-user">{{ authStore.user?.email }}</span>
         <button @click="handleLogout" class="logout-btn-mobile">Log out</button>
@@ -143,6 +171,7 @@ function navigate(path) {
   align-items: center;
   gap: 12px;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .logo-icon-nav {
@@ -157,6 +186,12 @@ function navigate(path) {
   align-items: center;
   gap: 3px;
   flex-shrink: 0;
+}
+
+.nav-logo:hover,
+.nav-logo:focus,
+.nav-logo:visited {
+  text-decoration: none;
 }
 
 .logo-line { height: 3.5px; border-radius: 2px; }
@@ -219,6 +254,8 @@ function navigate(path) {
 
 .manager-link { color: #d97706 !important; }
 .admin-link { color: #e74c3c !important; font-weight: bold; }
+.reports-link {color: #2563eb !important;}
+.mobile-menu .reports-link-mobile {color: #93c5fd;}
 
 .nav-right {
   display: flex;
@@ -233,6 +270,14 @@ function navigate(path) {
   background: #f5f4ff;
   padding: 6px 12px;
   border-radius: 20px;
+}
+
+.app-name-nav {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: #3C3489;
+  letter-spacing: -0.5px;
+  text-decoration: none;
 }
 
 .logout-btn {

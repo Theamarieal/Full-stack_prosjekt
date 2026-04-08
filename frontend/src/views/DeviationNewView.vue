@@ -291,7 +291,7 @@ input:focus, select:focus, textarea:focus {
   border-color: #3C3489;
 }
 
-@media (max-width: 350px) {
+@media (max-width: 786px) {
   .page-header-section {
     flex-direction: column;
     gap: 16px;
