@@ -6,6 +6,10 @@ import ntnu.no.fs_v26.model.Deviation;
 import ntnu.no.fs_v26.model.DeviationStatus;
 import ntnu.no.fs_v26.model.User;
 import ntnu.no.fs_v26.repository.DeviationRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -18,12 +22,26 @@ public class DeviationService {
     private final DeviationRepository repository;
 
     /**
-     * Returns all deviations belonging to the user's organization.
+     * Returns a paginated list of deviations belonging to the user's organization,
+     * sorted by creation date descending.
+     *
+     * @param user the authenticated user
+     * @param page the page number (0-indexed)
+     * @param size the number of items per page
+     * @return a page of deviations for the user's organization
+     */
+    public Page<Deviation> getDeviations(User user, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return repository.findAllByOrganizationId(user.getOrganization().getId(), pageable);
+    }
+
+    /**
+     * Returns all deviations belonging to the user's organization (used by reports).
      *
      * @param user the authenticated user
      * @return list of deviations for the user's organization
      */
-    public List<Deviation> getDeviations(User user) {
+    public List<Deviation> getAllDeviations(User user) {
         return repository.findAllByOrganizationId(user.getOrganization().getId());
     }
 
@@ -40,14 +58,14 @@ public class DeviationService {
      */
     public Deviation reportDeviation(DeviationRequest request, User user) {
         Deviation deviation = Deviation.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
-                .module(request.getModule())
-                .status(DeviationStatus.OPEN)
-                .createdAt(LocalDateTime.now())
-                .reportedBy(user)
-                .organization(user.getOrganization())
-                .build();
+            .title(request.getTitle())
+            .description(request.getDescription())
+            .module(request.getModule())
+            .status(DeviationStatus.OPEN)
+            .createdAt(LocalDateTime.now())
+            .reportedBy(user)
+            .organization(user.getOrganization())
+            .build();
 
         return repository.save(deviation);
     }
@@ -66,11 +84,11 @@ public class DeviationService {
      */
     public Deviation updateStatus(Long id, DeviationStatus newStatus, User user) {
         Deviation deviation = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Deviation not found"));
+            .orElseThrow(() -> new IllegalArgumentException("Deviation not found"));
 
-        // Security: verify deviation belongs to the user's organization
         if (!deviation.getOrganization().getId().equals(user.getOrganization().getId())) {
-            throw new org.springframework.security.access.AccessDeniedException("Access denied: deviation belongs to a different organization");
+            throw new org.springframework.security.access.AccessDeniedException(
+                "Access denied: deviation belongs to a different organization");
         }
 
         deviation.setStatus(newStatus);

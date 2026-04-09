@@ -119,7 +119,7 @@
     <section class="active-lists-section">
       <div class="section-header">
         <h2>Active Checklists</h2>
-        <span class="count-badge">{{ checklists.length }} total</span>
+        <span class="count-badge">{{ totalElements }} total</span>
       </div>
 
       <div v-if="checklists.length === 0" class="empty-state" role="status">
@@ -150,6 +150,31 @@
           </div>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <nav v-if="totalPages > 1" class="pagination" aria-label="Pagination">
+        <button
+          class="page-btn"
+          @click="prevPage"
+          :disabled="currentPage === 0"
+          aria-label="Previous page"
+        >
+          ← Previous
+        </button>
+
+        <span class="page-info" aria-live="polite">
+          Page {{ currentPage + 1 }} of {{ totalPages }}
+        </span>
+
+        <button
+          class="page-btn"
+          @click="nextPage"
+          :disabled="currentPage >= totalPages - 1"
+          aria-label="Next page"
+        >
+          Next →
+        </button>
+      </nav>
     </section>
   </div>
 </template>
@@ -162,6 +187,10 @@ import api from '@/api/axios'
 const router = useRouter()
 
 const checklists = ref([])
+const currentPage = ref(0)
+const pageSize = 6
+const totalPages = ref(0)
+const totalElements = ref(0)
 const loading = ref(false)
 const formError = ref('')
 const formMessage = ref('')
@@ -177,11 +206,29 @@ const form = ref({
 
 const fetchChecklists = async () => {
   try {
-    const response = await api.get('/checklists')
-    checklists.value = response.data
+    const response = await api.get('/checklists', {
+      params: { page: currentPage.value, size: pageSize }
+    })
+    checklists.value = response.data.content ?? []
+    totalPages.value = response.data.totalPages ?? 0
+    totalElements.value = response.data.totalElements ?? 0
   } catch (err) {
     formError.value = 'Could not fetch checklists.'
     console.error('Could not fetch lists')
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 0) {
+    currentPage.value--
+    fetchChecklists()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value - 1) {
+    currentPage.value++
+    fetchChecklists()
   }
 }
 
@@ -232,6 +279,7 @@ const handleCreate = async () => {
     }
     fieldErrors.value = {}
     formMessage.value = 'Checklist created successfully.'
+    currentPage.value = 0
     await fetchChecklists()
   } catch (err) {
     formError.value = 'Error while saving. Check that all required fields are filled out.'
@@ -247,6 +295,9 @@ const handleDelete = async (id) => {
   try {
     await api.delete(`/checklists/${id}`)
     formMessage.value = 'Checklist deleted successfully.'
+    if (checklists.value.length === 1 && currentPage.value > 0) {
+      currentPage.value--
+    }
     await fetchChecklists()
   } catch (err) {
     console.error(err)
@@ -292,16 +343,6 @@ onMounted(fetchChecklists)
   font-size: 0.85rem;
   font-weight: 700;
   margin-top: 6px;
-}
-
-.error-banner {
-  background: #fff5f5;
-  border: 1px solid #fecaca;
-  color: #991b1b;
-  padding: 16px;
-  border-radius: 12px;
-  font-weight: 700;
-  margin-bottom: 20px;
 }
 
 .error-banner {
@@ -370,20 +411,10 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
-}
-
 .items-management {
   background: #fcfcfb; border: 1.5px solid #f0f0ee;
   padding: 20px; border-radius: 12px; margin-bottom: 24px;
 }
-
-.items-management label { display: block; font-weight: 700; color: #3C3489; margin-bottom: 12px; }
 
 .items-management legend {
   font-weight: 700;
@@ -392,9 +423,7 @@ textarea:focus-visible {
   padding: 0 4px;
 }
 
-.item-input-group {
-  flex: 1;
-}
+.item-input-group { flex: 1; }
 
 .item-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
 .item-number {
@@ -444,6 +473,34 @@ textarea:focus-visible {
 }
 
 .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.page-btn {
+  padding: 10px 20px;
+  border: 1.5px solid #e0dfd8;
+  border-radius: 10px;
+  background: white;
+  color: #534AB7;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #534AB7;
+  color: white;
+  border-color: #534AB7;
+}
+
+.page-btn:disabled { color: #c7c7c7; cursor: not-allowed; }
+.page-info { font-weight: 700; color: #3C3489; font-size: 0.95rem; }
 
 @media (max-width: 786px) {
   .form-grid-main { grid-template-columns: 1fr; }

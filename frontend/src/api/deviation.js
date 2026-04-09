@@ -1,8 +1,11 @@
 import axios from './axios';
 
 export default {
-  getAll() {
-    return axios.get('/deviations')
+  getAll(page = 0, size = 5) {
+    return axios.get('/deviations', { params: { page, size } })
+  },
+  getLargePage() {
+    return axios.get('/deviations', { params: { page: 0, size: 1000 } })
   },
   create(deviation) {
     return axios.post('/deviations', deviation)

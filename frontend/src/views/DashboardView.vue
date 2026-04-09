@@ -403,12 +403,16 @@ async function loadTemperatureData() {
 
 async function loadDashboardLists() {
   const [deviationRes, checklistRes] = await Promise.all([
-    deviationApi.getAll(),
-    checklistApi.getAll(),
+    deviationApi.getLargePage(),
+    checklistApi.getLargePage(),
   ])
 
-  deviations.value = Array.isArray(deviationRes.data) ? deviationRes.data : []
-  checklists.value = Array.isArray(checklistRes.data) ? checklistRes.data : []
+  deviations.value = Array.isArray(deviationRes.data?.content)
+    ? deviationRes.data.content
+    : (Array.isArray(deviationRes.data) ? deviationRes.data : [])
+  checklists.value = Array.isArray(checklistRes.data?.content)
+    ? checklistRes.data.content
+    : (Array.isArray(checklistRes.data) ? checklistRes.data : [])
 }
 
 function goToAlcohol() {
