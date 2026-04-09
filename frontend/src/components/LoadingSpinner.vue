@@ -1,4 +1,12 @@
 <script setup>
+/**
+ * LoadingSpinner
+ *
+ * Reusable loading indicator displayed while async operations are pending.
+ * Optionally shows a message below the spinner.
+ *
+ * @prop {string} [message=''] - Optional message displayed below the spinner.
+ */
 defineProps({
   message: {
     type: String,

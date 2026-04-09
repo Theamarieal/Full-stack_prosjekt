@@ -180,6 +180,13 @@
 </template>
 
 <script setup>
+/**
+ * ManageChecklistsView
+ *
+ * Checklist management view accessible to users with the MANAGER or ADMIN role.
+ * Allows managers to create, edit, and delete checklists and their items,
+ * and to configure module type and frequency for each checklist.
+ */
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/api/axios'

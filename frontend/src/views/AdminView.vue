@@ -196,6 +196,14 @@
 </template>
 
 <script setup>
+/**
+ * AdminView
+ *
+ * Administration panel accessible only to users with the ADMIN role.
+ * Allows admins to manage users within their organization, including
+ * creating new users, updating roles, toggling active status, and deleting accounts.
+ * Also supports creating new organizations.
+ */
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'

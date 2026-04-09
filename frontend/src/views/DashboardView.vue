@@ -264,6 +264,15 @@
 </template>
 
 <script setup>
+/**
+ * DashboardView
+ *
+ * Main landing page shown after login.
+ * Provides an overview of compliance status across all modules, including:
+ * alcohol registration status, temperature deviation warnings,
+ * checklist completion progress, and open deviations.
+ * Accessible to all authenticated users.
+ */
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

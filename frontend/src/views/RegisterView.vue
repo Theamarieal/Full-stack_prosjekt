@@ -1,7 +1,7 @@
 <template>
   <div class="register-page">
     <div class="register-card">
-      
+
       <div class="branding">
         <div class="logo-icon" aria-hidden="true">
           <div class="logo-line line-1"></div>
@@ -38,7 +38,7 @@
             :aria-describedby="error ? 'register-error' : undefined"
           />
         </div>
-      
+
         <div class="form-group">
           <label for="reg-password">Password</label>
           <input
@@ -57,7 +57,7 @@
             <li :class="{ met: /[0-9]/.test(password) }">At least one number</li>
           </ul>
         </div>
-      
+
         <div class="form-group">
           <label for="reg-confirm-password">Confirm password</label>
           <input
@@ -83,7 +83,7 @@
             Passwords do not match.
           </p>
         </div>
-      
+
         <div class="form-group">
           <label for="reg-role">Your role</label>
           <select
@@ -96,7 +96,7 @@
             <option value="MANAGER">Manager</option>
           </select>
         </div>
-      
+
         <button type="submit" :disabled="loading" class="register-btn">
           {{ loading ? 'Creating account...' : 'Sign me up' }}
         </button>
@@ -116,6 +116,13 @@
 </template>
 
 <script setup>
+/**
+ * RegisterView
+ *
+ * Displays the registration form for new users.
+ * Submits credentials to the auth store and redirects to the dashboard on success.
+ * Shows an error message if registration fails (e.g. email already in use).
+ */
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'

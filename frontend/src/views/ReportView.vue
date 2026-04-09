@@ -6,7 +6,7 @@
           <h1>Reports</h1>
           <p>Generate a compliance report for a selected date range.</p>
         </div>
-      
+
         <button type="button" class="back-btn-minimal" @click="router.push('/')">
           ← Dashboard
         </button>
@@ -213,6 +213,14 @@
 </template>
 
 <script setup>
+/**
+ * ReportView
+ *
+ * Compliance report view accessible to users with the MANAGER or ADMIN role.
+ * Allows managers to generate a report for a selected date range,
+ * summarising deviations, temperature logs, checklist completions,
+ * and alcohol compliance registrations.
+ */
 import { ref } from 'vue'
 import { fetchReport } from '@/api/report'
 import { useRouter } from 'vue-router'

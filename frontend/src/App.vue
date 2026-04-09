@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <nav class="global-nav" v-if="authStore.isLoggedIn" aria-label="Main navigation">
-      
+
       <router-link to="/" class="nav-logo">
         <div class="logo-icon-nav" aria-hidden="true">
           <div class="logo-line line-1"></div>
@@ -32,20 +32,20 @@
         >
           Reports
         </router-link>
-      
-        <router-link 
+
+        <router-link
           v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
-          to="/manage-checklists" 
-          role="menuitem" 
+          to="/manage-checklists"
+          role="menuitem"
           class="manager-link"
         >
           Manage
         </router-link>
 
-        <router-link 
+        <router-link
           v-if="authStore.getUserRole === 'ADMIN'"
-          to="/admin" 
-          role="menuitem" 
+          to="/admin"
+          role="menuitem"
           class="admin-link"
         >
           Admin
@@ -75,7 +75,7 @@
       v-if="authStore.isLoggedIn && menuOpen"
       id="mobile-menu"
       class="mobile-menu"
-    >   
+    >
       <router-link to="/" @click="menuOpen = false">Dashboard</router-link>
       <router-link to="/checklists" @click="menuOpen = false">Checklists</router-link>
       <router-link to="/temperature" @click="menuOpen = false">Temperature</router-link>
@@ -91,7 +91,7 @@
       >
         Reports
       </router-link>
-    
+
       <router-link
         v-if="authStore.getUserRole === 'MANAGER' || authStore.getUserRole === 'ADMIN'"
         to="/manage-checklists"
@@ -100,7 +100,7 @@
       >
         Manage checklists
       </router-link>
-    
+
       <router-link
         v-if="authStore.getUserRole === 'ADMIN'"
         to="/admin"
@@ -109,7 +109,7 @@
       >
         Admin
       </router-link>
-    
+
       <div class="mobile-menu-footer">
         <span class="mobile-user">{{ authStore.user?.email }}</span>
         <button @click="handleLogout" class="logout-btn-mobile">Log out</button>
@@ -121,6 +121,13 @@
 </template>
 
 <script setup>
+/**
+ * App
+ *
+ * Root component of the Checkd application.
+ * Renders the top-level layout including the navigation bar and the router view.
+ * Handles logout and conditional rendering of navigation based on authentication state.
+ */
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'

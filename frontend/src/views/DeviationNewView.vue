@@ -85,6 +85,14 @@
 </template>
 
 <script setup>
+/**
+ * DeviationNewView
+ *
+ * Form view for registering a new deviation report.
+ * Allows all authenticated users to submit a deviation with a title,
+ * description, and module (IK-Mat or IK-Alkohol).
+ * Redirects to the deviation list on successful submission.
+ */
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import deviationApi from '@/api/deviation'

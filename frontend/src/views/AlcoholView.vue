@@ -313,6 +313,13 @@
 </template>
 
 <script setup>
+/**
+ * AlcoholView
+ *
+ * Alcohol compliance registration view for the IK-Alkohol module.
+ * Allows employees to log opening checks, closing checks, and spot checks.
+ * Managers and admins can view historical logs filtered by date.
+ */
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

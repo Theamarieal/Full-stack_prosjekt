@@ -13,7 +13,7 @@
         <h3>Filter Records</h3>
         <button type="button" class="reset-link-btn" @click="resetFilters">Reset filters</button>
       </div>
-      
+
       <div class="filters-grid">
         <div class="form-group">
           <label for="equipment">Equipment</label>
@@ -90,6 +90,12 @@
 </template>
 
 <script setup>
+/**
+ * TemperatureHistoryView
+ *
+ * Displays historical temperature log entries with optional filtering
+ * by equipment and date range. Part of the IK-Mat food safety module.
+ */
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import temperatureApi from '@/api/temperature'
@@ -268,14 +274,14 @@ table {
   min-width: 600px;
 }
 
-th { 
-  text-align: left; 
-  padding: 12px; 
-  color: #4b5563; 
-  font-size: 0.75rem; 
-  text-transform: uppercase; 
-  letter-spacing: 0.05em; 
-  border-bottom: 2px solid #f0f0f0; 
+th {
+  text-align: left;
+  padding: 12px;
+  color: #4b5563;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 td { padding: 16px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.95rem; }

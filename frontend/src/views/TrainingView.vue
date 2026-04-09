@@ -10,7 +10,7 @@
               <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong>.
             </p>
           </div>
-        
+
           <button type="button" class="back-btn-minimal" @click="router.push('/')">
             ← Dashboard
           </button>
@@ -602,6 +602,14 @@
 </template>
 
 <script setup>
+/**
+ * TrainingView
+ *
+ * Training and certification management view for the IK-Alkohol and IK-Mat modules.
+ * Allows employees to read training documents, complete quizzes, and acknowledge policies.
+ * Managers and admins can upload documents, add quiz questions, and sign off
+ * on practical training completions for other employees.
+ */
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import trainingApi from '@/api/training'

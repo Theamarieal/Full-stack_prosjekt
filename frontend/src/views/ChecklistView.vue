@@ -124,6 +124,13 @@
 </template>
 
 <script setup>
+/**
+ * ChecklistView
+ *
+ * Displays daily, weekly, and monthly compliance checklists for the current user.
+ * Supports filtering by module (IK-Mat / IK-Alkohol) and frequency.
+ * Allows users to mark individual checklist items as completed.
+ */
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import checklistApi from '@/api/checklist'
