@@ -7,6 +7,27 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+/**
+ * Initializes the database with test data on application startup.
+ *
+ * <p>Implements {@link CommandLineRunner} to run automatically after the Spring
+ * context is loaded. If the database already contains users, initialization is
+ * skipped to avoid duplicate data.
+ *
+ * <p>Creates two test organizations, each with an admin, a manager, and an employee,
+ * along with sample equipment and checklists. All test users share the password
+ * {@code password123}.
+ *
+ * <p>Test credentials:
+ * <ul>
+ *   <li>admin@test.no / password123 (ADMIN, Testrestaurant AS)</li>
+ *   <li>manager@test.no / password123 (MANAGER, Testrestaurant AS)</li>
+ *   <li>employee@test.no / password123 (EMPLOYEE, Testrestaurant AS)</li>
+ *   <li>admin@test2.no / password123 (ADMIN, Testrestaurant 2 AS)</li>
+ *   <li>manager@test2.no / password123 (MANAGER, Testrestaurant 2 AS)</li>
+ *   <li>employee@test2.no / password123 (EMPLOYEE, Testrestaurant 2 AS)</li>
+ * </ul>
+ */
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -18,6 +39,12 @@ public class DataInitializer implements CommandLineRunner {
         private final EquipmentRepository equipmentRepository;
         private final PasswordEncoder passwordEncoder;
 
+        /**
+         * Runs on application startup and populates the database with test data.
+         * Skips initialization if users already exist in the database.
+         *
+         * @param args command-line arguments (not used)
+         */
         @Override
         public void run(String... args) {
                 if (userRepository.count() > 0)
@@ -86,7 +113,5 @@ public class DataInitializer implements CommandLineRunner {
                     .description("Check temperature in fridge").completed(false).checklist(checklist2).build());
                 itemRepository.save(ChecklistItem.builder()
                     .description("Turn on coffeemachine").completed(false).checklist(checklist2).build());
-
-                System.out.println("DEBUG: All test data (users, equipment, and checklists) has been added!");
         }
 }
