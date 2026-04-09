@@ -229,9 +229,9 @@ Given the three-week timeframe and a team of three, we prioritized completing co
 - Deviation reporting and status tracking (OPEN → IN_PROGRESS → RESOLVED)
 - IK-Alkohol documentation (age control and serving hours) with automatic deviation detection
 - Training module with policy acknowledgement and interactive training materials (quizzes and practical training)
-      - Managers can create training content and upload supporting materials (PDF)
-      - Employees can complete training and receive certifications upon passing quizzes
-      - Managers have full overview of employee progress (completed quizzes and acknowledged policies)
+    - Managers can create training content and upload supporting materials (PDF)
+    - Employees can complete training and receive certifications upon passing quizzes
+    - Managers have full overview of employee progress (completed quizzes and acknowledged policies)
 
 **Should-have features completed**
 - Temperature history with filtering
