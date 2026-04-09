@@ -241,6 +241,11 @@ Given the three-week timeframe and a team of three, we prioritized completing co
 - Report generation for managers, exporting deviation data (including time range and comments) as structured JSON files
 <br><br>
 
+### **Technical decisions and trade-offs**
+
+Regarding styling, we made a deliberate decision not to create separate stylesheets for each view. While this approach allowed us to save time and focus more on implementing core functionality, it resulted in less structured styling code and made future changes more cumbersome.
+<br><br>
+
 ### **Deliberately limited / design decisions**
 
 To make optimal use of our time and present the product effectively, we chose to centralize organization management within the Admin page. When a new user accesses the application, they can only register under the displayed organization. If a new organization is required, it can be created through the Admin page. Additionally, administrators can create new users within their associated organization.
