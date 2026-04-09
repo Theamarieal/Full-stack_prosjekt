@@ -7,7 +7,8 @@
             <h2>Training and Document Storage</h2>
             <p>
               Access policies, complete training materials, and review training records for
-              <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong>.
+              <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong
+              >.
             </p>
           </div>
 
@@ -33,7 +34,12 @@
           <div class="form-grid">
             <div class="form-group">
               <label for="document-title">Title</label>
-              <input id="document-title" v-model="newDocument.title" type="text" placeholder="Title" />
+              <input
+                id="document-title"
+                v-model="newDocument.title"
+                type="text"
+                placeholder="Title"
+              />
             </div>
 
             <div class="form-group">
@@ -109,7 +115,12 @@
 
           <button class="primary-button" @click="createDocument">Save document</button>
 
-          <p v-if="managerMessage" class="ok-text feedback-message" role="status" aria-live="polite">
+          <p
+            v-if="managerMessage"
+            class="ok-text feedback-message"
+            role="status"
+            aria-live="polite"
+          >
             {{ managerMessage }}
           </p>
           <p v-if="managerError" class="warning-text feedback-message" role="alert">
@@ -505,42 +516,58 @@
           </button>
         </div>
 
-        <p class="card-description">
-          Add a new quiz question for <strong>{{ questionDocument.title }}</strong>.
-        </p>
-
         <div class="form-group">
-          <label for="quiz-question">Question</label>
-          <textarea id="quiz-question" v-model="newQuestion.question" rows="3" placeholder="Question" />
+          <textarea
+            id="quiz-question"
+            v-model="newQuestion.question"
+            rows="3"
+            placeholder="Write the quiz question here..."
+          />
         </div>
 
         <div class="form-group">
-          <label for="option-a">Option A</label>
-          <input id="option-a" v-model="newQuestion.optionA" type="text" placeholder="Option A" />
+          <input
+            id="option-a"
+            v-model="newQuestion.optionA"
+            type="text"
+            placeholder="Enter answer option A"
+          />
         </div>
 
         <div class="form-group">
-          <label for="option-b">Option B</label>
-          <input id="option-b" v-model="newQuestion.optionB" type="text" placeholder="Option B" />
+          <input
+            id="option-b"
+            v-model="newQuestion.optionB"
+            type="text"
+            placeholder="Enter answer option B"
+          />
         </div>
 
         <div class="form-group">
-          <label for="option-c">Option C</label>
-          <input id="option-c" v-model="newQuestion.optionC" type="text" placeholder="Option C" />
+          <input
+            id="option-c"
+            v-model="newQuestion.optionC"
+            type="text"
+            placeholder="Enter answer option C"
+          />
         </div>
 
         <div class="form-group">
-          <label for="option-d">Option D</label>
-          <input id="option-d" v-model="newQuestion.optionD" type="text" placeholder="Option D" />
+          <input
+            id="option-d"
+            v-model="newQuestion.optionD"
+            type="text"
+            placeholder="Enter answer option D"
+          />
         </div>
 
         <div class="form-group">
-          <label for="correct-answer">Correct answer</label>
+          <label for="correct-answer">Choose correct answer:</label>
           <select id="correct-answer" v-model="newQuestion.correctAnswer">
-            <option value="A">Correct answer: A</option>
-            <option value="B">Correct answer: B</option>
-            <option value="C">Correct answer: C</option>
-            <option value="D">Correct answer: D</option>
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
           </select>
         </div>
 
@@ -570,7 +597,8 @@
 
         <p class="card-description">
           Select an employee and approve practical training for
-          <strong>{{ practicalDocument.title }}</strong>.
+          <strong>{{ practicalDocument.title }}</strong
+          >.
         </p>
 
         <div class="form-group">
@@ -585,12 +613,22 @@
 
         <div class="form-group">
           <label for="practical-note">Manager note</label>
-          <textarea id="practical-note" v-model="practicalNote" rows="4" placeholder="Optional manager note" />
+          <textarea
+            id="practical-note"
+            v-model="practicalNote"
+            rows="4"
+            placeholder="Optional manager note"
+          />
         </div>
 
         <button class="primary-button" @click="approvePracticalTraining">Approve</button>
 
-        <p v-if="practicalMessage" class="ok-text feedback-message" role="status" aria-live="polite">
+        <p
+          v-if="practicalMessage"
+          class="ok-text feedback-message"
+          role="status"
+          aria-live="polite"
+        >
           {{ practicalMessage }}
         </p>
         <p v-if="practicalError" class="warning-text feedback-message" role="alert">
@@ -1063,7 +1101,6 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-
 .welcome-header {
   display: flex;
   justify-content: space-between;
@@ -1090,7 +1127,7 @@ onMounted(loadData)
 
 .back-btn-minimal {
   background: transparent;
-  color: #534AB7;
+  color: #534ab7;
   border: 1.5px solid #e0dfd8;
   padding: 10px 16px;
   border-radius: 10px;
@@ -1409,6 +1446,7 @@ textarea {
 .primary-button {
   background: #2563eb;
   color: white;
+  margin-top: 12px;
 }
 
 .secondary-button {
@@ -1516,6 +1554,7 @@ textarea {
 .correct-answer {
   font-weight: 700;
   color: #15803d;
+  margin-bottom: 12px;
 }
 
 .manager-info-text {
