@@ -103,8 +103,7 @@ The following test data is created automatically by `DataInitializer` when the b
 To trigger a temperature deviation in the UI, log a temperature outside the equipment's limits — for example, 10°C for "Kitchen Fridge" (limit is 0–4°C).
 
 **Alcohol**
-Age check for alcohol serving is automatically limited based on the Norwegian alcohol distribution law. 
-This is shown when you, for example, try to serve alcohol to a person under 18. It will not be possible to register ...
+Age verification for alcohol serving is automatically enforced in accordance with Norwegian alcohol regulations. Attempts to serve alcohol to underage individuals (e.g., under 18) are automatically registered as deviations. Additionally, alcohol-related actions can only be recorded within registered serving hours. The system restricts serving sessions to one start and one end per day to ensure compliance with legal requirements.
 
 ---
 
@@ -247,6 +246,8 @@ Given the three-week timeframe and a team of three, we prioritized completing co
 To make optimal use of our time and present the product effectively, we chose to centralize organization management within the Admin page. When a new user accesses the application, they can only register under the displayed organization. If a new organization is required, it can be created through the Admin page. Additionally, administrators can create new users within their associated organization.
 
 Pagination was implemented on selected pages, including Deviations, Checklist, and the Manage page (accessible only to Managers and Admins). These were identified as the most critical areas for handling larger datasets.
+
+For temperature logging, the system displays the 10 most recent registrations to provide a quick and relevant overview. A complete history of all temperature records is available in the Temperature History view.
 <br><br>
 
 ### **Future improvements**
