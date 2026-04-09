@@ -102,6 +102,10 @@ The following test data is created automatically by `DataInitializer` when the b
 
 To trigger a temperature deviation in the UI, log a temperature outside the equipment's limits — for example, 10°C for "Kitchen Fridge" (limit is 0–4°C).
 
+**Alcohol**
+Age check for alcohol serving is automatically limited based on the Norwegian alcohol distribution law. 
+This is shown when you, for example, try to serve alcohol to a person under 18. It will not be possible to register ...
+
 ---
 
 ## How to run the tests
@@ -116,13 +120,15 @@ The test suite uses a separate H2 in-memory database configured in `src/test/res
 
 **Tests included:**
 - `JwtServiceTest` — unit tests for JWT token generation and validation
-- `JwtAuthenticationFilterTest` — filter unit tests
-- `SecurityIntegrationTest` — Spring Security integration tests
-- `UserDetailsServiceTest` — user loading unit tests
-- `AuthenticationControllerIT` — integration tests for login and registration
-- `ChecklistControllerIT` — integration tests for checklist endpoints and role-based access
-- `DeviationControllerIT` — integration tests for deviation reporting and status updates
-- `TemperatureControllerIT` — integration tests for temperature logging and deviation detection
+- `JwtAuthenticationFilterTest` — unit tests for JWT request filtering
+- `SecurityIntegrationTest` — integration tests for Spring Security configuration and protected endpoints
+- `UserDetailsServiceTest` — unit tests for loading users from the database
+- `AuthenticationControllerIT` — integration tests for registration and login endpoints
+- `AuthenticationServiceTest` — unit tests for authentication logic, including registration, role handling, organization lookup, and token generation
+- `ChecklistControllerIT` — integration tests for checklist endpoints and role-based access control
+- `DeviationControllerIT` — integration tests for deviation creation and status management
+- `TemperatureControllerIT` — integration tests for temperature logging and automatic deviation detection
+- `MultiTenancyIT` — integration tests for organization-based data isolation and access control
 
 ---
 
@@ -214,23 +220,40 @@ The following security measures have been implemented:
 
 ## Prioritization
 
-Given the three-week timeframe and a team of two, we prioritized completing core functionality end-to-end over implementing every optional feature.
+Given the three-week timeframe and a team of three, we prioritized completing core functionality end-to-end over implementing every optional feature.
 
-**Must-have features completed:**
+**Must-have features completed**
 - Full authentication flow (login, logout, role-based access)
 - Digital checklists with completion tracking
-- Temperature logging with automatic deviation detection
+- Temperature logging (IK-Mat) with automatic deviation detection
 - Deviation reporting and status tracking (OPEN → IN_PROGRESS → RESOLVED)
-- IK-Alkohol documentation (age control and serving hours)
+- IK-Alkohol documentation (age control and serving hours) with automatic deviation detection
+- Training module with policy acknowledgement and interactive training materials (quizzes and practical training)
+      - Managers can create training content and upload supporting materials (PDF)
+      - Employees can complete training and receive certifications upon passing quizzes
+      - Managers have full overview of employee progress (completed quizzes and acknowledged policies)
 
-**Should-have features completed:**
+**Should-have features completed**
 - Temperature history with filtering
 - Dashboard with compliance status and colour indicators for both modules
 - Checklist management for managers (create, delete)
-- Alcohol routine overview with warning on missing registration
+- Alcohol routine overview with warnings on missing registration
+- Report generation for managers, exporting deviation data (including time range and comments) as structured JSON files
 
-**Deliberately not implemented:**
-Add later, maybe we have some time left over for implementation!!!
+**Deliberately limited / design decisions**
+To make optimal use of our time and present the product effectively, we chose to centralize organization management within the Admin page. When a new user accesses the application, they can only register under the displayed organization. If a new organization is required, it can be created through the Admin page. Additionally, administrators can create new users within their associated organization.
+
+Pagination was implemented on selected pages, including Deviations, Checklist, and the Manage page (accessible only to Managers and Admins). These were identified as the most critical areas for handling larger datasets.
+
+**Future improvements**
+- Extend pagination to additional views such as Temperature History and Alcohol Log
+- Expand file upload support beyond PDF to include additional formats (e.g., images, videos)
+- Enhance reporting with more export formats (e.g., CSV, PDF)
+- Improve validation and user feedback across the application
+
+- The system is designed to be easily extensible with additional functionality
+  - Checklists can be further developed to automatically align with regulatory hygiene requirements (IK-Mat)
+  - Additional analytics and statistics can be introduced to provide deeper insights into organizational performance
 
 
 We chose to prioritize OWASP security measures, input validation, test coverage, and a working end-to-end experience over adding more features that would not be fully implemented.
