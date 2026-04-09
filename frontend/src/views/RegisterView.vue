@@ -21,7 +21,7 @@
 
       <div class="header-text">
         <h2>Create user</h2>
-        <p class="subtitle">Become a part of Everest Sushi & Fusion AS</p>
+        <p class="subtitle">Become a part of Testrestaurant AS</p>
       </div>
 
       <form @submit.prevent="handleRegister" novalidate>
