@@ -18,6 +18,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Service class for checklist management and completion.
+ *
+ * <p>Handles retrieval, creation, item completion, and deletion of checklists.
+ * All operations are scoped to the authenticated user's organization,
+ * enforcing multi-tenancy across both IK-Mat and IK-Alkohol modules.
+ */
 @Service
 @RequiredArgsConstructor
 public class ChecklistService {
@@ -26,14 +33,14 @@ public class ChecklistService {
     private final ChecklistItemRepository itemRepository;
 
     /**
-     * Returns a paginated list of checklists belonging to the user's organization,
-     * optionally filtered by module and/or frequency.
+     * Returns a paginated list of checklists for the user's organization,
+     * optionally filtered by module type and frequency.
      *
      * @param user      the authenticated user
-     * @param page      the page number (0-indexed)
+     * @param page      the page number (zero-indexed)
      * @param size      the number of items per page
-     * @param module    optional module filter (null = all modules)
-     * @param frequency optional frequency filter (null = all frequencies)
+     * @param module    optional module filter; {@code null} returns all modules
+     * @param frequency optional frequency filter; {@code null} returns all frequencies
      * @return a page of checklists for the user's organization
      */
     public Page<Checklist> getChecklistsByOrganization(User user, int page, int size, ModuleType module, Frequency frequency) {
@@ -42,21 +49,22 @@ public class ChecklistService {
     }
 
     /**
-     * Returns all checklists belonging to the user's organization (used by dashboard and manage page).
+     * Returns all checklists for the user's organization.
+     * Used by the dashboard and the checklist management view.
      *
      * @param user the authenticated user
-     * @return list of all checklists for the user's organization
+     * @return a list of all checklists for the organization
      */
     public List<Checklist> getAllChecklists(User user) {
         return checklistRepository.findAllByOrganizationId(user.getOrganization().getId());
     }
 
     /**
-     * Creates a new checklist for the user's organization.
+     * Creates a new checklist and its items for the user's organization.
      *
-     * @param request the validated request body
+     * @param request the validated request body containing title, description, frequency, module, and items
      * @param user    the authenticated manager or admin creating the checklist
-     * @return the saved checklist
+     * @return the saved checklist (without items populated in response)
      */
     public Checklist createChecklist(ChecklistRequest request, User user) {
         Checklist checklist = Checklist.builder()
@@ -86,8 +94,11 @@ public class ChecklistService {
     /**
      * Marks a checklist item as completed by the given user.
      *
-     * @param itemId the id of the item to complete
+     * <p>Verifies that the item belongs to the user's organization before completing it.
+     *
+     * @param itemId the ID of the checklist item to complete
      * @param user   the authenticated user completing the item
+     * @throws IllegalArgumentException if the item is not found or belongs to a different organization
      */
     public void completeItem(Long itemId, User user) {
         ChecklistItem item = itemRepository.findById(itemId)
@@ -103,6 +114,15 @@ public class ChecklistService {
         itemRepository.save(item);
     }
 
+    /**
+     * Deletes a checklist by ID.
+     *
+     * <p>Verifies that the checklist belongs to the user's organization before deleting.
+     *
+     * @param id   the ID of the checklist to delete
+     * @param user the authenticated manager or admin
+     * @throws IllegalArgumentException if the checklist is not found or belongs to a different organization
+     */
     public void deleteChecklist(Long id, User user) {
         Checklist checklist = checklistRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Checklist not found"));
