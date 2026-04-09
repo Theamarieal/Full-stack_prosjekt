@@ -232,6 +232,7 @@ Given the three-week timeframe and a team of three, we prioritized completing co
     - Managers can create training content and upload supporting materials (PDF)
     - Employees can complete training and receive certifications upon passing quizzes
     - Managers have full overview of employee progress (completed quizzes and acknowledged policies)
+  
 
 **Should-have features completed**
 - Temperature history with filtering
@@ -240,10 +241,13 @@ Given the three-week timeframe and a team of three, we prioritized completing co
 - Alcohol routine overview with warnings on missing registration
 - Report generation for managers, exporting deviation data (including time range and comments) as structured JSON files
 
+
 **Deliberately limited / design decisions**
+
 To make optimal use of our time and present the product effectively, we chose to centralize organization management within the Admin page. When a new user accesses the application, they can only register under the displayed organization. If a new organization is required, it can be created through the Admin page. Additionally, administrators can create new users within their associated organization.
 
 Pagination was implemented on selected pages, including Deviations, Checklist, and the Manage page (accessible only to Managers and Admins). These were identified as the most critical areas for handling larger datasets.
+
 
 **Future improvements**
 - Extend pagination to additional views such as Temperature History and Alcohol Log
