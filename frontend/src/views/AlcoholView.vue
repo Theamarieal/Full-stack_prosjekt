@@ -312,11 +312,13 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import alcoholApi from '@/api/alcohol'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const authStore = useAuthStore()
+const router = useRouter()
 
 const activeTab = ref('register')
 const isSaving = ref(false)
@@ -813,7 +815,7 @@ onMounted(async () => {
 
 .stat-card {
   background: white; border: 1px solid #e0dfd8; border-left: 6px solid #534AB7;
-  border-radius: 14px; padding: px; box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
+  border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
 }
 
 .history-section .card-header {
@@ -1058,6 +1060,10 @@ textarea:focus-visible {
   .page-header-section {
     flex-direction: column;
     gap: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
   }
 
   .back-btn-minimal {

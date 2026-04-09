@@ -1,9 +1,15 @@
 <template>
   <div class="report-view">
     <div class="page-header">
-      <div>
-        <h1>Reports</h1>
-        <p>Generate a compliance report for a selected date range.</p>
+      <div class="page-header-content">
+        <div class="page-header-text">
+          <h1>Reports</h1>
+          <p>Generate a compliance report for a selected date range.</p>
+        </div>
+      
+        <button type="button" class="back-btn-minimal" @click="router.push('/')">
+          ← Dashboard
+        </button>
       </div>
     </div>
 
@@ -209,7 +215,9 @@
 <script setup>
 import { ref } from 'vue'
 import { fetchReport } from '@/api/report'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const today = new Date().toISOString().split('T')[0]
 
 const from = ref(today)
@@ -291,9 +299,40 @@ function formatType(type) {
   margin-bottom: 24px;
 }
 
+.page-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.page-header-text {
+  flex: 1;
+}
+
 .page-header h1 {
   margin: 0 0 6px;
   font-size: 2.4rem;
+}
+
+.page-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.back-btn-minimal {
+  background: transparent;
+  color: #534AB7;
+  border: 1.5px solid #e0dfd8;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back-btn-minimal:hover {
+  background: #fafaf8;
 }
 
 .page-header p {
@@ -563,6 +602,11 @@ function formatType(type) {
     padding: 24px 16px 32px;
   }
 
+  .page-header-content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .page-header h1 {
     font-size: 2rem;
   }
@@ -572,8 +616,13 @@ function formatType(type) {
   }
 
   .primary-button,
-  .secondary-button {
+  .secondary-button,
+  .back-btn-minimal {
     width: 100%;
+  }
+
+  .back-btn-minimal {
+    text-align: center;
   }
 
   .item-top-row {

@@ -2,11 +2,19 @@
   <div class="training-page">
     <main class="training-content">
       <div class="welcome-card">
-        <h2>Training and Document Storage</h2>
-        <p>
-          Access policies, complete training materials, and review training records for
-          <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong>.
-        </p>
+        <div class="welcome-header">
+          <div class="welcome-text">
+            <h2>Training and Document Storage</h2>
+            <p>
+              Access policies, complete training materials, and review training records for
+              <strong>{{ authStore.user?.organization?.name || 'your organization' }}</strong>.
+            </p>
+          </div>
+        
+          <button type="button" class="back-btn-minimal" @click="router.push('/')">
+            ← Dashboard
+          </button>
+        </div>
       </div>
 
       <p v-if="actionMessage" class="ok-text feedback-message" role="status" aria-live="polite">
@@ -597,7 +605,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import trainingApi from '@/api/training'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const authStore = useAuthStore()
 
 const policies = ref([])
@@ -1045,6 +1055,18 @@ onMounted(loadData)
 </script>
 
 <style scoped>
+
+.welcome-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.welcome-text {
+  flex: 1;
+}
+
 .training-page {
   max-width: 1200px;
   margin: 0 auto;
@@ -1056,6 +1078,20 @@ onMounted(loadData)
 .form-group {
   display: flex;
   flex-direction: column;
+}
+
+.back-btn-minimal {
+  background: transparent;
+  color: #534AB7;
+  border: 1.5px solid #e0dfd8;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back-btn-minimal:hover {
+  background: #fafaf8;
 }
 
 .feedback-message {
@@ -1494,8 +1530,23 @@ textarea {
     padding: 16px;
   }
 
+  .welcome-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .section-topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .back-btn-minimal {
+    width: 100%;
+    text-align: center;
   }
 
   .section-topbar {
