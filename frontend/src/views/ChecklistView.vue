@@ -22,6 +22,15 @@
       </button>
     </div>
 
+    <div class="module-filter" role="group" aria-label="Module filter">
+      <label for="module-select">Department/Module</label>
+      <select id="module-select" v-model="selectedModule">
+        <option value="ALL">All modules</option>
+        <option value="KITCHEN">IK-Mat (Food Safety)</option>
+        <option value="BAR">IK-Alkohol (Alcohol)</option>
+      </select>
+    </div>
+
     <LoadingSpinner v-if="loading" message="Loading checklists..." />
 
     <div v-else-if="error" class="error-banner" role="alert" aria-live="assertive">
@@ -101,11 +110,15 @@ const loading = ref(true)
 const error = ref('')
 const completeErrors = ref({})
 const selectedFrequency = ref('ALL')
+const selectedModule = ref('ALL')
 const frequencies = ['ALL', 'DAILY', 'WEEKLY', 'MONTHLY']
 
 const filteredChecklists = computed(() => {
-  if (selectedFrequency.value === 'ALL') return checklists.value
-  return checklists.value.filter((c) => c.frequency === selectedFrequency.value)
+  return checklists.value.filter((c) => {
+    const freqMatch = selectedFrequency.value === 'ALL' || c.frequency === selectedFrequency.value
+    const moduleMatch = selectedModule.value === 'ALL' || c.module === selectedModule.value
+    return freqMatch && moduleMatch
+  })
 })
 
 function isChecklistDone(checklist) {
@@ -191,7 +204,7 @@ onMounted(loadChecklists)
 .filter-bar {
   display: flex;
   gap: 8px;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
   overflow-x: auto;
   padding-bottom: 8px;
 }
@@ -214,6 +227,36 @@ onMounted(loadChecklists)
   color: white;
   border-color: #534AB7;
   box-shadow: 0 4px 10px rgba(83, 74, 183, 0.2);
+}
+
+.module-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.module-filter label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #3C3489;
+  white-space: nowrap;
+}
+
+.module-filter select {
+  padding: 8px 12px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.module-filter select:focus {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
 .checklists-grid {
@@ -357,14 +400,24 @@ input[type="checkbox"] {
     flex-direction: column;
     gap: 16px;
   }
-  
+
   .back-btn-minimal {
     width: 100%;
     text-align: center;
   }
-  
+
   .checklists-grid {
     grid-template-columns: 1fr;
   }
+
+  .module-filter {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .module-filter select {
+    width: 100%;
+  }
 }
 </style>
+
