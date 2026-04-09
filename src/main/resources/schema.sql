@@ -1,6 +1,8 @@
 CREATE TABLE IF NOT EXISTS organizations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    serving_start TIME,
+    serving_end TIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 

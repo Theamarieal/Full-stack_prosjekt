@@ -2,7 +2,9 @@ package ntnu.no.fs_v26.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
 @Builder
