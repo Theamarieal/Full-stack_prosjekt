@@ -1,8 +1,15 @@
 <template>
   <div class="admin-wrapper">
     <div class="admin-container">
-      <h1>Administration</h1>
-      <p class="subtitle">Manage users and organizations</p>
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Administration</h1>
+          <p class="subtitle">Manage users and organizations</p>
+        </div>
+        <button type="button" class="back-btn-minimal" @click="router.push('/')">
+          ← Dashboard
+        </button>
+      </div>
 
       <p v-if="successMessage" class="success-message" role="status" aria-live="polite">
         <span aria-hidden="true">✓ </span>{{ successMessage }}
@@ -191,6 +198,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 const authStore = useAuthStore()
 const orgName = authStore.user?.organization?.name || 'your organization'
 import { getUsers, createUser, updateUserRole, deleteUser, toggleUserActive, createOrganization } from '@/api/admin'
@@ -370,6 +380,32 @@ onMounted(fetchUsers)
   min-height: 100vh;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 1.5rem;
+}
+
+.page-header-text {
+  flex: 1;
+}
+
+.back-btn-minimal {
+  background: transparent;
+  color: #534AB7;
+  border: 1.5px solid #e0dfd8;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back-btn-minimal:hover {
+  background: #fafaf8;
+}
+
 .admin-container {
   width: 100%;
   max-width: 1100px;
@@ -389,7 +425,7 @@ h2 {
 
 .subtitle {
   color: #4b5563;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .card {
@@ -621,5 +657,7 @@ td {
   .action-buttons, .role-change { flex-direction: column; align-items: stretch; }
   .btn-save, .btn-deactivate, .btn-delete { width: 100%; }
   .role-change select { width: 100%; min-width: 0; }
+  .back-btn-minimal { width: 100%; text-align: center;}
+  .page-header{ flex-direction: column; align-items: stretch;}
 }
 </style>

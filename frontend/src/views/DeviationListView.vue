@@ -5,9 +5,15 @@
         <h1>Deviations</h1>
         <p class="subtitle">Monitor and resolve quality gaps</p>
       </div>
-      <button type="button" class="add-btn" @click="router.push('/deviations/new')">
-        <span class="plus-icon" aria-hidden="true">+</span> Report deviation
-      </button>
+    
+      <div class="header-actions">
+        <button type="button" class="add-btn" @click="router.push('/deviations/new')">
+          <span class="plus-icon" aria-hidden="true">+</span> Report deviation
+        </button>
+        <button type="button" class="back-btn-minimal" @click="router.push('/')">
+          ← Dashboard
+        </button>
+      </div>
     </header>
 
     <div class="filter-wrapper">
@@ -200,7 +206,15 @@ function formatDate(dateStr) {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 16px;
   margin-bottom: 32px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .header-main h1 { font-size: 2rem; font-weight: 800; color: #3C3489; margin-bottom: 4px; }
@@ -220,6 +234,21 @@ function formatDate(dateStr) {
   transition: transform 0.2s, background 0.2s;
 }
 .add-btn:hover { transform: translateY(-2px); background: #3C3489; }
+
+.back-btn-minimal {
+  background: transparent;
+  color: #534AB7;
+  border: 1.5px solid #e0dfd8;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.back-btn-minimal:hover {
+  background: #fafaf8;
+}
+
 button:focus-visible,
 select:focus-visible {
   outline: 3px solid #1d4ed8;
@@ -370,8 +399,10 @@ select {
 .empty-icon { font-size: 3rem; margin-bottom: 12px; }
 
 @media (max-width: 786px) {
-  .page-header-section { flex-direction: column; gap: 16px; }
+  .page-header-section { flex-direction: column; gap: 16px; align-items: stretch;}
+  .header-actions {flex-direction: column; width: 100%;}
   .add-btn { width: 100%; justify-content: center; }
   .card-top { flex-direction: column; gap: 12px; }
+  .back-btn-minimal {width: 100%; justify-content: center; text-align: center;}
 }
 </style>
