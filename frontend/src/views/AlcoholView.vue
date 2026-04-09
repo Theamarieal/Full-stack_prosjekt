@@ -707,7 +707,11 @@ async function submitLog() {
       type: form.value.type,
       recordedTime: form.value.recordedTime,
       notes:
-        form.value.type === 'INCIDENT' || form.value.type === 'AGE_CHECK' ? form.value.notes : null,
+        form.value.type === 'INCIDENT'
+          ? form.value.notes?.trim() || null
+          : form.value.type === 'AGE_CHECK' && requiresDenialNotes()
+            ? form.value.notes?.trim() || null
+            : null,
       guestAge: form.value.type === 'AGE_CHECK' ? form.value.guestAge : null,
       alcoholPercentage: form.value.type === 'AGE_CHECK' ? form.value.alcoholPercentage : null,
       idChecked: form.value.type === 'AGE_CHECK' ? form.value.idChecked : null,
@@ -728,6 +732,8 @@ async function submitLog() {
 
     if (typeof responseData === 'string') {
       errorMessage.value = responseData
+    } else if (responseData?.error) {
+      errorMessage.value = responseData.error
     } else if (responseData?.message) {
       errorMessage.value = responseData.message
     } else {
@@ -758,8 +764,8 @@ watch(
 
     if (newType === 'AGE_CHECK') {
       form.value.notes = ''
-      form.value.idChecked = null
-      form.value.serviceDenied = null
+      form.value.idChecked = false
+      form.value.serviceDenied = false
     }
   },
 )
