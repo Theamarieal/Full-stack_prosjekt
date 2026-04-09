@@ -218,11 +218,13 @@ The following security measures have been implemented:
 
 ---
 
-## Prioritization
+## Prioritization 
+<br><br>
 
-Given the three-week timeframe and a team of three, we prioritized completing core functionality end-to-end over implementing every optional feature.
+Given the three-week timeframe and a team of three, we prioritized completing core functionality end-to-end over implementing every optional feature. <br><br>
 
 **Must-have features completed**
+<br><br>
 - Full authentication flow (login, logout, role-based access)
 - Digital checklists with completion tracking
 - Temperature logging (IK-Mat) with automatic deviation detection
@@ -232,24 +234,26 @@ Given the three-week timeframe and a team of three, we prioritized completing co
     - Managers can create training content and upload supporting materials (PDF)
     - Employees can complete training and receive certifications upon passing quizzes
     - Managers have full overview of employee progress (completed quizzes and acknowledged policies)
-  
+  <br><br>
 
 **Should-have features completed**
+<br><br>
 - Temperature history with filtering
 - Dashboard with compliance status and colour indicators for both modules
 - Checklist management for managers (create, delete)
 - Alcohol routine overview with warnings on missing registration
 - Report generation for managers, exporting deviation data (including time range and comments) as structured JSON files
-
+<br><br>
 
 **Deliberately limited / design decisions**
-
+<br><br>
 To make optimal use of our time and present the product effectively, we chose to centralize organization management within the Admin page. When a new user accesses the application, they can only register under the displayed organization. If a new organization is required, it can be created through the Admin page. Additionally, administrators can create new users within their associated organization.
 
 Pagination was implemented on selected pages, including Deviations, Checklist, and the Manage page (accessible only to Managers and Admins). These were identified as the most critical areas for handling larger datasets.
-
+<br><br>
 
 **Future improvements**
+<br><br>
 - Extend pagination to additional views such as Temperature History and Alcohol Log
 - Expand file upload support beyond PDF to include additional formats (e.g., images, videos)
 - Enhance reporting with more export formats (e.g., CSV, PDF)
