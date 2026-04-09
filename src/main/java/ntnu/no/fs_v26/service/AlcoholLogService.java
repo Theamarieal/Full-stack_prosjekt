@@ -7,6 +7,7 @@ import ntnu.no.fs_v26.model.AlcoholLogType;
 import ntnu.no.fs_v26.model.Deviation;
 import ntnu.no.fs_v26.model.DeviationModule;
 import ntnu.no.fs_v26.model.DeviationStatus;
+import ntnu.no.fs_v26.model.Organization;
 import ntnu.no.fs_v26.model.User;
 import ntnu.no.fs_v26.repository.AlcoholLogRepository;
 import ntnu.no.fs_v26.repository.DeviationRepository;
@@ -52,6 +53,13 @@ public class AlcoholLogService {
         LocalTime recordedTime = LocalTime.parse(request.getRecordedTime());
         LocalDateTime recordedAt = LocalDateTime.of(shiftDate, recordedTime);
 
+        Organization organization = user.getOrganization();
+
+        validateServingStateForShift(
+                request.getType(),
+                shiftDate,
+                organization.getId());
+
         validateRequest(request);
 
         AlcoholLog log = new AlcoholLog();
@@ -59,7 +67,7 @@ public class AlcoholLogService {
         log.setRecordedAt(recordedAt);
         log.setShiftDate(shiftDate);
         log.setRecordedBy(user);
-        log.setOrganization(user.getOrganization());
+        log.setOrganization(organization);
         log.setGuestAge(request.getGuestAge());
         log.setAlcoholPercentage(request.getAlcoholPercentage());
         log.setIdChecked(request.getIdChecked());
@@ -273,5 +281,85 @@ public class AlcoholLogService {
         }
 
         return guestAge >= 18;
+    }
+
+    private boolean isWithinServingHours(LocalTime now, LocalTime servingStart, LocalTime servingEnd) {
+        if (servingStart == null || servingEnd == null) {
+            return false;
+        }
+
+        if (servingStart.equals(servingEnd)) {
+            return true;
+        }
+
+        if (servingStart.isBefore(servingEnd)) {
+            return !now.isBefore(servingStart) && !now.isAfter(servingEnd);
+        }
+
+        return !now.isBefore(servingStart) || !now.isAfter(servingEnd);
+    }
+
+    private void validateServingWindow(
+            AlcoholLogType type,
+            LocalTime time,
+            LocalTime servingStart,
+            LocalTime servingEnd) {
+        boolean withinServingHours = isWithinServingHours(time, servingStart, servingEnd);
+
+        if (!withinServingHours) {
+            if (type == AlcoholLogType.AGE_CHECK) {
+                throw new IllegalArgumentException("Age check can only be registered during serving hours.");
+            }
+            if (type == AlcoholLogType.BREAK) {
+                throw new IllegalArgumentException("Break can only be registered during serving hours.");
+            }
+            if (type == AlcoholLogType.INCIDENT) {
+                throw new IllegalArgumentException("Incident can only be registered during serving hours.");
+            }
+        }
+    }
+
+    private boolean hasLogTypeOnShift(LocalDate shiftDate, Long organizationId, AlcoholLogType type) {
+        return alcoholLogRepository
+                .findByOrganizationIdAndShiftDateOrderByRecordedAtDesc(organizationId, shiftDate)
+                .stream()
+                .anyMatch(log -> log.getType() == type);
+    }
+
+    private void validateServingStateForShift(
+            AlcoholLogType type,
+            LocalDate shiftDate,
+            Long organizationId) {
+        boolean hasServingStart = hasLogTypeOnShift(shiftDate, organizationId, AlcoholLogType.SERVING_START);
+        boolean hasServingEnd = hasLogTypeOnShift(shiftDate, organizationId, AlcoholLogType.SERVING_END);
+        boolean servingActive = hasServingStart && !hasServingEnd;
+
+        if (type == AlcoholLogType.SERVING_START && hasServingStart) {
+            throw new IllegalArgumentException("Serving start has already been registered for this shift.");
+        }
+
+        if (type == AlcoholLogType.SERVING_END) {
+            if (!hasServingStart) {
+                throw new IllegalArgumentException("Serving end cannot be registered before serving start.");
+            }
+            if (hasServingEnd) {
+                throw new IllegalArgumentException("Serving end has already been registered for this shift.");
+            }
+        }
+
+        if ((type == AlcoholLogType.AGE_CHECK || type == AlcoholLogType.BREAK || type == AlcoholLogType.INCIDENT)
+                && !servingActive) {
+            throw new IllegalArgumentException(getServingStateErrorMessage(type));
+        }
+    }
+
+    private String getServingStateErrorMessage(AlcoholLogType type) {
+        return switch (type) {
+            case AGE_CHECK ->
+                "Age check can only be registered after serving has started and before serving has ended.";
+            case BREAK -> "Break can only be registered after serving has started and before serving has ended.";
+            case INCIDENT -> "Incident can only be registered after serving has started and before serving has ended.";
+            default -> "This log type cannot be registered right now.";
+        };
     }
 }

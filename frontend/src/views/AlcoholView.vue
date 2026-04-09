@@ -56,6 +56,10 @@
           <h3>Register shift event</h3>
         </div>
 
+        <div v-if="showServingStateWarning" class="serving-hours-warning" role="alert">
+          {{ servingStateWarningMessage }}
+        </div>
+
         <form class="form-grid" @submit.prevent="submitLog">
           <div class="form-group">
             <label for="type">Log type</label>
@@ -78,11 +82,7 @@
               :aria-invalid="!!fieldErrors.recordedTime"
               :aria-describedby="fieldErrors.recordedTime ? 'recordedTime-error' : undefined"
             />
-            <p
-              v-if="fieldErrors.recordedTime"
-              id="recordedTime-error"
-              class="field-error"
-            >
+            <p v-if="fieldErrors.recordedTime" id="recordedTime-error" class="field-error">
               {{ fieldErrors.recordedTime }}
             </p>
           </div>
@@ -101,11 +101,7 @@
                   :aria-invalid="!!fieldErrors.guestAge"
                   :aria-describedby="fieldErrors.guestAge ? 'guestAge-error' : undefined"
                 />
-                <p
-                  v-if="fieldErrors.guestAge"
-                  id="guestAge-error"
-                  class="field-error"
-                >
+                <p v-if="fieldErrors.guestAge" id="guestAge-error" class="field-error">
                   {{ fieldErrors.guestAge }}
                 </p>
               </div>
@@ -119,7 +115,9 @@
                   step="0.1"
                   placeholder="e.g. 4.7"
                   :aria-invalid="!!fieldErrors.alcoholPercentage"
-                  :aria-describedby="fieldErrors.alcoholPercentage ? 'alcoholPercentage-error' : undefined"
+                  :aria-describedby="
+                    fieldErrors.alcoholPercentage ? 'alcoholPercentage-error' : undefined
+                  "
                 />
                 <p
                   v-if="fieldErrors.alcoholPercentage"
@@ -141,11 +139,7 @@
                   />
                   <label for="idChecked">ID Checked</label>
                 </div>
-                <p
-                  v-if="fieldErrors.idChecked"
-                  id="idChecked-error"
-                  class="field-error"
-                >
+                <p v-if="fieldErrors.idChecked" id="idChecked-error" class="field-error">
                   {{ fieldErrors.idChecked }}
                 </p>
               </div>
@@ -157,15 +151,13 @@
                     type="checkbox"
                     v-model="form.serviceDenied"
                     :aria-invalid="!!fieldErrors.serviceDenied"
-                    :aria-describedby="fieldErrors.serviceDenied ? 'serviceDenied-error' : undefined"
+                    :aria-describedby="
+                      fieldErrors.serviceDenied ? 'serviceDenied-error' : undefined
+                    "
                   />
                   <label for="serviceDenied">Service Denied</label>
                 </div>
-                <p
-                  v-if="fieldErrors.serviceDenied"
-                  id="serviceDenied-error"
-                  class="field-error"
-                >
+                <p v-if="fieldErrors.serviceDenied" id="serviceDenied-error" class="field-error">
                   {{ fieldErrors.serviceDenied }}
                 </p>
               </div>
@@ -198,9 +190,9 @@
           <div class="info-tile neutral-tile">
             <strong>Recommended usage</strong>
             <p>
-              Use <em>Age check</em> for ID control routines, <em>Serving start</em> and 
-              <em>Serving end</em> for serving hours, <em>Break</em> for pauses in serving, 
-              and <em>Incident</em> for alcohol-related deviations or events.
+              Use <em>Age check</em> for ID control routines, <em>Serving start</em> and
+              <em>Serving end</em> for serving hours, <em>Break</em> for pauses in serving, and
+              <em>Incident</em> for alcohol-related deviations or events.
             </p>
           </div>
 
@@ -212,21 +204,25 @@
               id="notes"
               v-model="form.notes"
               rows="4"
-              :placeholder="form.type === 'INCIDENT' ? 'Describe what happened...' : 'Explain why service was denied...'"
+              :placeholder="
+                form.type === 'INCIDENT'
+                  ? 'Describe what happened...'
+                  : 'Explain why service was denied...'
+              "
               :aria-invalid="!!fieldErrors.notes"
               :aria-describedby="fieldErrors.notes ? 'notes-error' : undefined"
             ></textarea>
-            <p
-              v-if="fieldErrors.notes"
-              id="notes-error"
-              class="field-error"
-            >
+            <p v-if="fieldErrors.notes" id="notes-error" class="field-error">
               {{ fieldErrors.notes }}
             </p>
           </div>
 
           <div class="form-actions full-width">
-            <button type="submit" class="save-btn" :disabled="isSaving">
+            <button
+              type="submit"
+              class="save-btn"
+              :disabled="isSaving || cannotRegisterSelectedType"
+            >
               {{ isSaving ? 'Saving...' : 'Save registration' }}
             </button>
           </div>
@@ -248,11 +244,23 @@
         <div v-if="canSearchHistory" class="manager-tools-grid">
           <div class="form-group">
             <label for="historyDate">Search date</label>
-            <p id="historyDate-help" class="help-text">Choose the date you want to load history for.</p>
-            <input id="historyDate" v-model="historyDate" type="date" aria-describedby="historyDate-help"/>
+            <p id="historyDate-help" class="help-text">
+              Choose the date you want to load history for.
+            </p>
+            <input
+              id="historyDate"
+              v-model="historyDate"
+              type="date"
+              aria-describedby="historyDate-help"
+            />
           </div>
           <div class="manager-actions">
-            <button type="button" @click="loadHistoryByDate" class="apply-btn" :disabled="!historyDate">
+            <button
+              type="button"
+              @click="loadHistoryByDate"
+              class="apply-btn"
+              :disabled="!historyDate"
+            >
               Load date
             </button>
             <button type="button" @click="loadHistory" class="secondary-btn-minimal">
@@ -266,7 +274,9 @@
 
         <div v-else class="table-container">
           <table class="history-table">
-            <caption class="sr-only">Alcohol shift history log</caption>
+            <caption class="sr-only">
+              Alcohol shift history log
+            </caption>
             <thead>
               <tr>
                 <th scope="col">Time</th>
@@ -281,24 +291,16 @@
                 <td data-label="Time" class="time-cell">{{ formatTime(log.recordedAt) }}</td>
                 <td data-label="Type">
                   <div class="tag-stack">
-                    <span
-                      v-for="t in log.displayTypes"
-                      :key="t"
-                      :class="['tag', badgeClass(t)]"
-                    >
+                    <span v-for="t in log.displayTypes" :key="t" :class="['tag', badgeClass(t)]">
                       {{ formatType(t) }}
                     </span>
                   </div>
                 </td>
                 <td data-label="Notes / Details" class="notes-cell">
-                  {{ log.notes?.trim() ? log.notes : 'Ingen detaljer registrert' }}
+                  {{ log.notes?.trim() ? log.notes : 'No details registered' }}
                 </td>
                 <td data-label="Staff" class="user-cell">{{ log.recordedBy?.split('@')[0] }}</td>
-                <td
-                  v-if="canSearchHistory"
-                  data-label="Date"
-                  class="date-cell"
-                >
+                <td v-if="canSearchHistory" data-label="Date" class="date-cell">
                   {{ formatDate(log.recordedAt) }}
                 </td>
               </tr>
@@ -317,8 +319,8 @@ import { useAuthStore } from '@/stores/auth'
 import alcoholApi from '@/api/alcohol'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
-const authStore = useAuthStore()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const activeTab = ref('register')
 const isSaving = ref(false)
@@ -347,14 +349,11 @@ function createDefaultForm() {
     notes: '',
     guestAge: null,
     alcoholPercentage: null,
-    idChecked: null,
-    serviceDenied: null,
+    idChecked: false,
+    serviceDenied: false,
   }
 }
 
-/**
- * Clears all field-specific validation messages.
- */
 function clearFieldErrors() {
   fieldErrors.value = {
     guestAge: '',
@@ -366,17 +365,67 @@ function clearFieldErrors() {
   }
 }
 
-/**
- * Indicates whether the current user can search historical dates.
- */
 const canSearchHistory = computed(() => {
   const role = authStore.user?.role
   return role === 'MANAGER' || role === 'ADMIN'
 })
 
-/**
- * Returns whether the guest is legally old enough for the selected alcohol percentage.
- */
+const todayHasServingStart = computed(() => {
+  return history.value.some((log) => log.type === 'SERVING_START')
+})
+
+const todayHasServingEnd = computed(() => {
+  return history.value.some((log) => log.type === 'SERVING_END')
+})
+
+const isServingActive = computed(() => {
+  return todayHasServingStart.value && !todayHasServingEnd.value
+})
+
+const isRestrictedType = computed(() => {
+  return ['AGE_CHECK', 'BREAK', 'INCIDENT'].includes(form.value.type)
+})
+
+const cannotRegisterSelectedType = computed(() => {
+  if (form.value.type === 'SERVING_START') {
+    return todayHasServingStart.value
+  }
+
+  if (form.value.type === 'SERVING_END') {
+    return !todayHasServingStart.value || todayHasServingEnd.value
+  }
+
+  if (isRestrictedType.value) {
+    return !isServingActive.value
+  }
+
+  return false
+})
+
+const servingStateWarningMessage = computed(() => {
+  if (form.value.type === 'SERVING_START' && todayHasServingStart.value) {
+    return 'Serving start has already been registered for this shift.'
+  }
+
+  if (form.value.type === 'SERVING_END' && !todayHasServingStart.value) {
+    return 'Serving end cannot be registered before serving start.'
+  }
+
+  if (form.value.type === 'SERVING_END' && todayHasServingEnd.value) {
+    return 'Serving end has already been registered for this shift.'
+  }
+
+  if (['AGE_CHECK', 'BREAK', 'INCIDENT'].includes(form.value.type) && !isServingActive.value) {
+    return `${formatType(form.value.type)} can only be registered after serving has started and before serving has ended.`
+  }
+
+  return ''
+})
+
+const showServingStateWarning = computed(() => {
+  return !!servingStateWarningMessage.value
+})
+
 function isGuestOldEnough() {
   if (form.value.guestAge == null || form.value.alcoholPercentage == null) {
     return false
@@ -389,10 +438,6 @@ function isGuestOldEnough() {
   return form.value.guestAge >= 18
 }
 
-/**
- * Returns whether this age check represents a compliance-risk situation.
- * These cases should be allowed to save, and the backend should create a deviation.
- */
 const isDeviationAgeCheck = computed(() => {
   if (form.value.type !== 'AGE_CHECK') {
     return false
@@ -417,9 +462,6 @@ const isDeviationAgeCheck = computed(() => {
   return noIdChecked || servedUnder18 || servedStrongAlcoholUnder20
 })
 
-/**
- * Notes are shown for all age checks so the employee can document the situation.
- */
 const showAgeCheckNotes = computed(() => {
   return form.value.type === 'AGE_CHECK'
 })
@@ -448,26 +490,16 @@ const ageCheckNotesPlaceholder = computed(() => {
   return 'Add optional notes for this age check.'
 })
 
-/**
- * Returns whether denial notes are required.
- * Notes are required when service is denied even though the guest is legally old enough.
- */
 function requiresDenialNotes() {
   return form.value.type === 'AGE_CHECK' && form.value.serviceDenied === true && isGuestOldEnough()
 }
 
-/**
- * Returns the current local time formatted for a time input.
- */
 function getNowLocalTime() {
   const now = new Date()
   const pad = (value) => String(value).padStart(2, '0')
   return `${pad(now.getHours())}:${pad(now.getMinutes())}`
 }
 
-/**
- * Formats an ISO date-time string to a date string.
- */
 function formatDate(value) {
   if (!value) return '-'
   return new Date(value).toLocaleDateString('nb-NO', {
@@ -477,10 +509,6 @@ function formatDate(value) {
   })
 }
 
-
-/**
- * Formats an ISO date-time string to a time string.
- */
 function formatTime(value) {
   if (!value) return '-'
   return new Date(value).toLocaleTimeString('nb-NO', {
@@ -489,9 +517,6 @@ function formatTime(value) {
   })
 }
 
-/**
- * Converts an alcohol log type enum value into user-friendly text.
- */
 function formatType(type) {
   switch (type) {
     case 'AGE_CHECK':
@@ -509,9 +534,6 @@ function formatType(type) {
   }
 }
 
-/**
- * Returns a CSS class name for a type badge.
- */
 function badgeClass(type) {
   switch (type) {
     case 'AGE_CHECK':
@@ -529,20 +551,10 @@ function badgeClass(type) {
   }
 }
 
-/**
- * Returns a normalized text value for comparison.
- */
 function normalizeText(value) {
   return (value || '').trim()
 }
 
-/**
- * Groups age-check and incident logs into one visual history row
- * when they represent the same denied-service event.
- *
- * @param {Array} logs - Raw alcohol log history from the backend.
- * @returns {Array} Grouped log entries for display.
- */
 function groupHistoryLogs(logs) {
   const grouped = []
   const usedIndexes = new Set()
@@ -603,6 +615,11 @@ function validateForm() {
     return false
   }
 
+  if (cannotRegisterSelectedType.value) {
+    fieldErrors.value.recordedTime = servingStateWarningMessage.value
+    return false
+  }
+
   if (form.value.type === 'INCIDENT' && !form.value.notes?.trim()) {
     fieldErrors.value.notes = 'Incident notes are required.'
     return false
@@ -629,16 +646,6 @@ function validateForm() {
       return false
     }
 
-    if (form.value.idChecked == null) {
-      fieldErrors.value.idChecked = 'Please select whether ID was checked.'
-      return false
-    }
-
-    if (form.value.serviceDenied == null) {
-      fieldErrors.value.serviceDenied = 'Please select whether service was denied.'
-      return false
-    }
-
     if (requiresDenialNotes() && !form.value.notes?.trim()) {
       fieldErrors.value.notes =
         'A reason is required when service is denied even though the guest is old enough.'
@@ -649,9 +656,6 @@ function validateForm() {
   return true
 }
 
-/**
- * Loads alcohol logs for the current active shift.
- */
 async function loadHistory() {
   isLoadingHistory.value = true
   errorMessage.value = ''
@@ -667,11 +671,6 @@ async function loadHistory() {
   }
 }
 
-/**
- * Loads alcohol logs for a selected date.
- *
- * @returns {Promise<void>}
- */
 async function loadHistoryByDate() {
   if (!canSearchHistory.value || !historyDate.value) return
 
@@ -689,9 +688,6 @@ async function loadHistoryByDate() {
   }
 }
 
-/**
- * Submits a new alcohol log entry to the backend.
- */
 async function submitLog() {
   if (!validateForm()) return
 
@@ -735,9 +731,6 @@ async function submitLog() {
   }
 }
 
-/**
- * Clear messages when the log type changes.
- */
 watch(
   () => form.value.type,
   (newType) => {
@@ -764,18 +757,20 @@ watch(
   },
 )
 
-/**
- * Loads history when the history tab becomes active.
- */
+watch(
+  () => form.value.recordedTime,
+  () => {
+    fieldErrors.value.recordedTime = ''
+    errorMessage.value = ''
+  },
+)
+
 watch(activeTab, async (newTab) => {
   if (newTab === 'history') {
     await loadHistory()
   }
 })
 
-/**
- * Loads initial history when the component is mounted.
- */
 onMounted(async () => {
   await loadHistory()
   initialLoading.value = false
@@ -798,50 +793,91 @@ onMounted(async () => {
   margin-bottom: 32px;
 }
 
-.header-main h1 { font-size: 2rem; font-weight: 800; color: #3C3489; margin-bottom: 4px; }
-.subtitle { color: #5a529f; font-weight: 600; font-size: 0.95rem; }
+.header-main h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #3c3489;
+  margin-bottom: 4px;
+}
+.subtitle {
+  color: #5a529f;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
 
 .back-btn-minimal {
-  background: transparent; color: #534AB7; border: 1.5px solid #e0dfd8;
-  padding: 10px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;
+  background: transparent;
+  color: #534ab7;
+  border: 1.5px solid #e0dfd8;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-.tab-container { display: flex; gap: 8px; margin-bottom: 24px; }
-.tab-pill {
-  padding: 10px 20px; border-radius: 25px; border: 1.5px solid #e0dfd8;
-  background: white; color: #666; font-weight: 700; cursor: pointer; transition: all 0.2s;
+.tab-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
 }
-.tab-pill.active { background: #534AB7; color: white; border-color: #534AB7; box-shadow: 0 4px 10px rgba(83, 74, 183, 0.2); }
+.tab-pill {
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: 1.5px solid #e0dfd8;
+  background: white;
+  color: #666;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-pill.active {
+  background: #534ab7;
+  color: white;
+  border-color: #534ab7;
+  box-shadow: 0 4px 10px rgba(83, 74, 183, 0.2);
+}
 
 .stat-card {
-  background: white; border: 1px solid #e0dfd8; border-left: 6px solid #534AB7;
-  border-radius: 14px; padding: 24px; box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
+  background: white;
+  border: 1px solid #e0dfd8;
+  border-left: 6px solid #534ab7;
+  border-radius: 14px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
 }
 
-.history-section .card-header {
-  margin-bottom: 16px;
+.card-header h3 {
+  color: #3c3489;
+  font-weight: 800;
+  margin-bottom: 24px;
+  font-size: 1.25rem;
 }
 
-.history-section .card-header h3 {
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.inner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
   margin-bottom: 8px;
+  color: #3c3489;
+  font-size: 0.85rem;
 }
-
-.history-section .card-header {
-  margin-bottom: 16px;
-}
-
-.history-section .card-header h3 {
-  margin-bottom: 8px;
-}
-
-.card-header h3 { color: #3C3489; font-weight: 800; margin-bottom: 24px; font-size: 1.25rem; }
-
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.inner-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
-.full-width { grid-column: 1 / -1; }
-
-.form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: #3C3489; font-size: 0.85rem; }
-input, select, textarea {
+input,
+select,
+textarea {
   padding: 12px;
   border: 1.5px solid #e0dfd8;
   border-radius: 10px;
@@ -854,7 +890,7 @@ input:focus,
 select:focus,
 textarea:focus {
   outline: none;
-  border-color: #534AB7;
+  border-color: #534ab7;
   background: white;
 }
 
@@ -880,32 +916,86 @@ textarea:focus-visible {
 .custom-checkbox-row label {
   margin-bottom: 0;
   font-weight: 700;
-  color: #3C3489;
+  color: #3c3489;
   font-size: 0.95rem;
   cursor: pointer;
 }
 
-.custom-checkbox-row input[type="checkbox"] {
+.custom-checkbox-row input[type='checkbox'] {
   width: 22px;
   height: 22px;
-  accent-color: #534AB7;
+  accent-color: #534ab7;
   margin: 0;
   flex-shrink: 0;
 }
 
-.info-tile { width: 100%; grid-column: 1 / -1; max-width: none; padding: 16px; border-radius: 12px; margin-top: 16px; font-size: 0.9rem; }
-.warning-tile { background: #fffbeb; border: 1.5px solid #fcd34d; }
-.neutral-tile {  background: #f3f4f6;  border: 1.5px solid #d1d5db;  color: #111827;}
+.info-tile {
+  width: 100%;
+  grid-column: 1 / -1;
+  max-width: none;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+.warning-tile {
+  background: #fffbeb;
+  border: 1.5px solid #fcd34d;
+}
+.neutral-tile {
+  background: #f3f4f6;
+  border: 1.5px solid #d1d5db;
+  color: #111827;
+}
 
-.tag-stack { display: flex; gap: 6px; }
-.tag { padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
-.badge-age-check { background: #f5f4ff; color: #4338ca; }
-.badge-incident { background: #fff5f5; color: #b91c1c; }
-.badge-serving-start { background: #ecfdf5; color: #166534; }
-.badge-serving-end { background: #fffbeb; color: #92400e; }
-.badge-break { background: #f0f9ff; color: #0c4a6e; }
+.serving-hours-warning {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  color: #9a3412;
+  font-weight: 700;
+}
 
-.field-error { color: #b91c1c; font-size: 0.85rem; font-weight: 700; margin-top: 6px; }
+.tag-stack {
+  display: flex;
+  gap: 6px;
+}
+.tag {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.badge-age-check {
+  background: #f5f4ff;
+  color: #4338ca;
+}
+.badge-incident {
+  background: #fff5f5;
+  color: #b91c1c;
+}
+.badge-serving-start {
+  background: #ecfdf5;
+  color: #166534;
+}
+.badge-serving-end {
+  background: #fffbeb;
+  color: #92400e;
+}
+.badge-break {
+  background: #f0f9ff;
+  color: #0c4a6e;
+}
+
+.field-error {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
 
 .sr-only {
   position: absolute;
@@ -942,12 +1032,21 @@ textarea:focus-visible {
   flex-wrap: wrap;
 }
 
-
-.manager-tools-grid { display: flex; gap: 16px; align-items: flex-end; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #f0f0f0; }
-.manager-actions { display: flex; gap: 10px; flex-wrap: wrap;}
+.manager-tools-grid {
+  display: flex;
+  gap: 20px;
+  align-items: flex-end;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.manager-actions {
+  display: flex;
+  gap: 10px;
+}
 
 .save-btn {
-  background: #534AB7;
+  background: #534ab7;
   color: white;
   border: none;
   padding: 14px;
@@ -959,7 +1058,7 @@ textarea:focus-visible {
 }
 
 .save-btn:hover {
-  background: #3C3489;
+  background: #3c3489;
 }
 
 .save-btn:disabled {
@@ -968,7 +1067,7 @@ textarea:focus-visible {
 }
 
 .apply-btn {
-  background: #534AB7;
+  background: #534ab7;
   color: white;
   border: none;
   padding: 12px 20px;
@@ -979,7 +1078,7 @@ textarea:focus-visible {
 }
 
 .apply-btn:hover {
-  background: #3C3489;
+  background: #3c3489;
 }
 
 .apply-btn:disabled {
@@ -994,13 +1093,13 @@ textarea:focus-visible {
   border-radius: 10px;
   font-weight: 700;
   cursor: pointer;
-  color: #3C3489;
+  color: #3c3489;
   transition: all 0.2s;
 }
 
 .secondary-btn-minimal:hover {
   background: #fafaf8;
-  border-color: #534AB7;
+  border-color: #534ab7;
 }
 
 .form-actions {
@@ -1048,9 +1147,9 @@ textarea:focus-visible {
 
 .history-table th,
 .history-table td {
-    padding-left: 6px;
-    padding-right: 6px;
-  }
+  padding-left: 6px;
+  padding-right: 6px;
+}
 
 @media (max-width: 768px) {
   .alcohol-page {
@@ -1140,7 +1239,7 @@ textarea:focus-visible {
     display: block;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #3C3489;
+    color: #3c3489;
     margin-bottom: 0.35rem;
   }
 }
