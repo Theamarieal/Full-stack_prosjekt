@@ -1,4 +1,4 @@
-# Kjekt — Digital Internal Control System
+# Chekd — Digital Internal Control System
 
 > **Kjekt. Enkelt. Ordentlig.**
 
