@@ -132,6 +132,13 @@
 </template>
 
 <script setup>
+/**
+ * DeviationListView
+ *
+ * Displays a paginated list of deviation reports for the current organization.
+ * Supports filtering by module and status.
+ * Users with the MANAGER or ADMIN role can update the status of deviations.
+ */
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

@@ -1,5 +1,17 @@
 import axios from 'axios';
 
+/**
+ * Pre-configured Axios instance for communicating with the Checkd backend API.
+ *
+ * Base URL: http://localhost:8080/api/v1
+ *
+ * Includes two interceptors:
+ * - Request interceptor: attaches the JWT token from sessionStorage as a Bearer token.
+ * - Response interceptor: handles 401 Unauthorized responses by clearing session
+ *   storage and redirecting the user to the login page.
+ *
+ * @module axios
+ */
 const api = axios.create({
   baseURL: 'http://localhost:8080/api/v1',
   headers: {
@@ -7,7 +19,10 @@ const api = axios.create({
   }
 });
 
-// interceptor that adds JWT-token in each request
+/**
+ * Request interceptor that attaches the JWT token to every outgoing request.
+ * The token is retrieved from sessionStorage under the key 'token'.
+ */
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('token');
   if (token) {
@@ -18,7 +33,11 @@ api.interceptors.request.use((config) => {
   return Promise.reject(error);
 });
 
-// response interceptor for error handling
+/**
+ * Response interceptor for global error handling.
+ * If a 401 Unauthorized response is received and a token exists in sessionStorage,
+ * the session is cleared and the user is redirected to the login page.
+ */
 api.interceptors.response.use(
   (response) => response,
   (error) => {

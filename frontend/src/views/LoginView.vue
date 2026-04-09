@@ -1,7 +1,7 @@
 <template>
   <div class="login-page">
     <div class="login-card">
-      
+
       <div class="branding">
         <div class="logo-icon" aria-hidden="true">
           <div class="logo-line line-1"></div>
@@ -22,36 +22,36 @@
       <form @submit.prevent="handleLogin" novalidate>
         <div class="form-group">
           <label for="email">E-mail</label>
-          <input 
-            id="email" 
-            v-model="email" 
-            type="email" 
-            required 
+          <input
+            id="email"
+            v-model="email"
+            type="email"
+            required
             placeholder="name@restaurant.com"
             :aria-invalid="!!error"
             :aria-describedby="error ? 'login-error' : undefined"
             autocomplete="username"
           />
         </div>
-      
+
         <div class="form-group">
           <label for="password">Password</label>
-          <input 
-            id="password" 
-            v-model="password" 
-            type="password" 
-            required 
+          <input
+            id="password"
+            v-model="password"
+            type="password"
+            required
             placeholder="••••••••"
             :aria-invalid="!!error"
             :aria-describedby="error ? 'login-error' : undefined"
             autocomplete="current-password"
           />
         </div>
-      
+
         <div v-if="error" id="login-error" class="error-msg" role="alert">
           {{ error }}
         </div>
-      
+
         <button type="submit" :disabled="loading" class="login-btn">
           {{ loading ? 'Logging in...' : 'Log in' }}
         </button>
@@ -69,6 +69,12 @@
 </template>
 
 <script setup>
+/**
+ * LoginView
+ *
+ * Displays the login form for the Checkd application.
+ * Authenticates the user via the auth store and redirects to the dashboard on success.
+ */
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'

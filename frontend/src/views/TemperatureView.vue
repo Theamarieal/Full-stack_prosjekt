@@ -101,6 +101,13 @@
 </template>
 
 <script setup>
+/**
+ * TemperatureView
+ *
+ * Temperature logging view for the IK-Mat food safety module.
+ * Allows employees to record temperature readings for registered equipment.
+ * Displays the latest temperature logs and highlights any readings outside acceptable ranges.
+ */
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import temperatureApi from '@/api/temperature'
