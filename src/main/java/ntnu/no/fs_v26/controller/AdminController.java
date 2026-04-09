@@ -24,7 +24,7 @@ public class AdminController {
 
   private final AdminService adminService;
 
-  @Operation(summary = "Get all users", description = "Returns all users. Requires ADMIN role.")
+  @Operation(summary = "Get all users", description = "Returns all users in the admin's organization. Requires ADMIN role.")
   @ApiResponse(responseCode = "200", description = "List of users returned successfully")
   @ApiResponse(responseCode = "403", description = "Access denied")
   @GetMapping("/users")
@@ -34,7 +34,7 @@ public class AdminController {
     return ResponseEntity.ok(adminService.getAllUsers(currentUser));
   }
 
-  @Operation(summary = "Create a new user", description = "Creates a user with email, password and role. Requires ADMIN role.")
+  @Operation(summary = "Create a new user", description = "Creates a user in the admin's organization. Requires ADMIN role.")
   @ApiResponse(responseCode = "201", description = "User created successfully")
   @ApiResponse(responseCode = "400", description = "Invalid input or e-mail already in use")
   @ApiResponse(responseCode = "403", description = "Access denied")
@@ -79,5 +79,17 @@ public class AdminController {
   public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
     adminService.deleteUser(userId);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(summary = "Create a new organization with an admin user",
+      description = "Creates a new organization and an admin user for it. Requires ADMIN role.")
+  @ApiResponse(responseCode = "201", description = "Organization created successfully")
+  @ApiResponse(responseCode = "400", description = "Invalid input or e-mail already in use")
+  @ApiResponse(responseCode = "403", description = "Access denied")
+  @PostMapping("/organizations")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<Map<String, Object>> createOrganization(
+      @Valid @RequestBody AdminCreateOrganizationRequest request) {
+    return ResponseEntity.status(HttpStatus.CREATED).body(adminService.createOrganization(request));
   }
 }

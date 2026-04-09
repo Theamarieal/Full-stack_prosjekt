@@ -1,8 +1,8 @@
 <template>
   <div class="admin-wrapper">
     <div class="admin-container">
-      <h1>User Management</h1>
-      <p class="subtitle">Admin panel: manage users and roles</p>
+      <h1>Administration</h1>
+      <p class="subtitle">Manage users and organizations</p>
 
       <p v-if="successMessage" class="success-message" role="status" aria-live="polite">
         <span aria-hidden="true">✓ </span>{{ successMessage }}
@@ -11,8 +11,55 @@
         <span aria-hidden="true">⚠ </span>{{ errorMessage }}
       </p>
 
+      <!-- Create new organization -->
+      <section class="card" aria-labelledby="create-org-heading">
+        <h2 id="create-org-heading">Create new organization</h2>
+
+        <div class="form-group">
+          <label for="org-name">Organization name</label>
+          <input
+            id="org-name"
+            v-model="newOrg.organizationName"
+            type="text"
+            placeholder="Restaurant name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="org-admin-email">Admin e-mail</label>
+          <input
+            id="org-admin-email"
+            v-model="newOrg.adminEmail"
+            type="email"
+            placeholder="admin@restaurant.no"
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="org-admin-password">Admin password</label>
+          <input
+            id="org-admin-password"
+            v-model="newOrg.adminPassword"
+            type="password"
+            placeholder="At least 8 characters"
+            autocomplete="new-password"
+          />
+          <ul class="password-requirements">
+            <li :class="{ met: newOrg.adminPassword.length >= 8 }">At least 8 characters</li>
+            <li :class="{ met: /[A-Z]/.test(newOrg.adminPassword) }">At least one uppercase letter</li>
+            <li :class="{ met: /[0-9]/.test(newOrg.adminPassword) }">At least one number</li>
+          </ul>
+        </div>
+
+        <button class="primary-btn" @click="handleCreateOrganization" :disabled="orgLoading">
+          {{ orgLoading ? 'Creating...' : 'Create organization' }}
+        </button>
+      </section>
+
+      <!-- Create new user -->
       <section class="card" aria-labelledby="create-user-heading">
-        <h2 id="create-user-heading">Create new user</h2>
+        <h2 id="create-user-heading">Create new user in {{ orgName }}</h2>
 
         <div class="form-group">
           <label for="new-user-email">E-mail</label>
@@ -22,8 +69,6 @@
             type="email"
             placeholder="name@bedrift.no"
             autocomplete="email"
-            :aria-invalid="!!errorMessage"
-            :aria-describedby="errorMessage ? 'admin-form-error' : undefined"
           />
         </div>
 
@@ -35,7 +80,7 @@
             type="password"
             placeholder="At least 8 characters"
             autocomplete="new-password"
-            :aria-describedby="'password-rules'"
+            aria-describedby="password-rules"
           />
           <ul id="password-rules" class="password-requirements">
             <li :class="{ met: newUser.password.length >= 8 }">At least 8 characters</li>
@@ -52,14 +97,10 @@
             type="password"
             placeholder="Repeat your password"
             autocomplete="new-password"
-            :aria-invalid="!!(newUser.confirmPassword && newUser.password !== newUser.confirmPassword)"
-            :aria-describedby="newUser.confirmPassword && newUser.password !== newUser.confirmPassword ? 'confirm-password-error' : undefined"
           />
           <p
             v-if="newUser.confirmPassword && newUser.password !== newUser.confirmPassword"
-            id="confirm-password-error"
             class="field-error"
-            role="alert"
           >
             Passwords do not match.
           </p>
@@ -74,76 +115,71 @@
           </select>
         </div>
 
-        <button @click="handleCreateUser" :disabled="loading" class="primary-btn">
+        <button class="primary-btn" @click="handleCreateUser" :disabled="loading">
           {{ loading ? 'Creating...' : 'Create user' }}
         </button>
-
-        <p v-if="errorMessage" id="admin-form-error" class="sr-only">
-          {{ errorMessage }}
-        </p>
       </section>
 
+      <!-- All users -->
       <section class="card" aria-labelledby="all-users-heading">
         <h2 id="all-users-heading">All users</h2>
         <p v-if="users.length === 0" class="empty-state">No users found.</p>
-
         <div v-else class="table-wrapper">
           <table>
-            <caption class="sr-only">List of users with status, role, role change and actions</caption>
             <thead>
-              <tr>
-                <th scope="col">E-mail</th>
-                <th scope="col">Status</th>
-                <th scope="col">Role</th>
-                <th scope="col">Change role</th>
-                <th scope="col">Actions</th>
-              </tr>
+            <tr>
+              <th scope="col">E-mail</th>
+              <th scope="col">Status</th>
+              <th scope="col">Role</th>
+              <th scope="col">Change role</th>
+              <th scope="col">Actions</th>
+            </tr>
             </thead>
             <tbody>
-              <tr v-for="user in users" :key="user.id" :class="{ 'row-inactive': !user.active }">
-                <td data-label="E-mail">{{ user.email }}</td>
-                <td data-label="Status">
+            <tr v-for="user in users" :key="user.id" :class="{ 'row-inactive': !user.active }">
+              <td data-label="E-mail">{{ user.email }}</td>
+              <td data-label="Status">
                   <span :class="['status-badge', user.active ? 'badge-active' : 'badge-inactive']">
                     {{ user.active ? 'Active' : 'Inactive' }}
                   </span>
-                </td>
-                <td data-label="Role">
+              </td>
+              <td data-label="Role">
                   <span :class="['role-badge', roleBadgeClass(user.role)]">
                     {{ user.role }}
                   </span>
-                </td>
-                <td data-label="Change role">
-                  <div class="role-change">
-                    <label class="sr-only" :for="`role-${user.id}`">Change role for {{ user.email }}</label>
-                    <select
-                      :id="`role-${user.id}`"
-                      v-model="user.pendingRole"
-                      :disabled="!user.active"
-                    >
-                      <option value="EMPLOYEE">Employee</option>
-                      <option value="MANAGER">Manager</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                    <button
-                      class="btn-save"
-                      @click="handleChangeRole(user)"
-                      :disabled="user.pendingRole === user.role || !user.active"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </td>
-                <td data-label="Actions">
-                  <div class="action-buttons">
-                    <button class="btn-deactivate" @click="handleToggleActive(user)">
-                      {{ user.active ? 'Deactivate' : 'Activate' }}
-                    </button>
-                    <button class="btn-delete" @click="handleDeleteUser(user)">
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              </td>
+              <td data-label="Change role">
+                <div class="role-change">
+                  <label class="sr-only" :for="`role-${user.id}`">Change role for {{ user.email }}</label>
+                  <select
+                    :id="`role-${user.id}`"
+                    v-model="user.pendingRole"
+                    :disabled="!user.active"
+                  >
+                    <option value="EMPLOYEE">Employee</option>
+                    <option value="MANAGER">Manager</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                  <button
+                    class="btn-save"
+                    @click="handleChangeRole(user)"
+                    :disabled="user.pendingRole === user.role || !user.active"
+                  >
+                    Save
+                  </button>
+                </div>
+              </td>
+              <td data-label="Actions">
+                <div class="action-buttons">
+                  <button class="btn-deactivate" @click="handleToggleActive(user)">
+                    {{ user.active ? 'Deactivate' : 'Activate' }}
+                  </button>
+                  <button class="btn-delete" @click="handleDeleteUser(user)">
+                    Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -154,10 +190,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getUsers, createUser, updateUserRole, deleteUser, toggleUserActive } from '@/api/admin'
+import { useAuthStore } from '@/stores/auth'
+const authStore = useAuthStore()
+const orgName = authStore.user?.organization?.name || 'your organization'
+import { getUsers, createUser, updateUserRole, deleteUser, toggleUserActive, createOrganization } from '@/api/admin'
 
 const users = ref([])
 const loading = ref(false)
+const orgLoading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
@@ -168,10 +208,16 @@ const newUser = ref({
   role: 'EMPLOYEE',
 })
 
+const newOrg = ref({
+  organizationName: '',
+  adminEmail: '',
+  adminPassword: '',
+})
+
 function showSuccess(msg) {
   successMessage.value = msg
   errorMessage.value = ''
-  setTimeout(() => (successMessage.value = ''), 3000)
+  setTimeout(() => (successMessage.value = ''), 4000)
 }
 
 function showError(msg) {
@@ -200,6 +246,37 @@ async function fetchUsers() {
     users.value = data.map((u) => ({ ...u, pendingRole: u.role }))
   } catch {
     showError('Could not load users.')
+  }
+}
+
+async function handleCreateOrganization() {
+  if (!newOrg.value.organizationName || !newOrg.value.adminEmail || !newOrg.value.adminPassword) {
+    showError('All fields are required.')
+    return
+  }
+
+  const passwordError = validatePassword(newOrg.value.adminPassword)
+  if (passwordError) {
+    showError(passwordError)
+    return
+  }
+
+  orgLoading.value = true
+  try {
+    const result = await createOrganization({
+      organizationName: newOrg.value.organizationName,
+      adminEmail: newOrg.value.adminEmail,
+      adminPassword: newOrg.value.adminPassword,
+    })
+    showSuccess(`Organization "${result.organizationName}" created. Admin: ${result.adminEmail}`)
+    newOrg.value = { organizationName: '', adminEmail: '', adminPassword: '' }
+  } catch (err) {
+    const data = err.response?.data
+    const rawMessage = data?.errors?.[0] || data?.error || 'Something went wrong. Try again.'
+    const message = rawMessage.includes(': ') ? rawMessage.split(': ').slice(1).join(': ') : rawMessage
+    showError(message)
+  } finally {
+    orgLoading.value = false
   }
 }
 
@@ -322,13 +399,6 @@ h2 {
   border: 1px solid #e0dfd8;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-}
-
-h3 {
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  font-weight: bold;
-  color: #2c3e50;
 }
 
 .form-group {
@@ -498,37 +568,13 @@ th {
   border: 0;
 }
 
-.btn-save {
-  background: #6b7280;
-}
-
-.btn-deactivate {
-  background-color: #d97706;
-}
-
-.btn-delete {
-  background-color: #dc2626;
-}
-
-.badge-admin {
-  background: #fdecea;
-  color: #b91c1c;
-}
-
-.badge-manager {
-  background: #fff7db;
-  color: #b45309;
-}
-
-.badge-employee {
-  background: #e8f5e9;
-  color: #166534;
-}
-
-.badge-active {
-  background: #e8f5e9;
-  color: #166534;
-}
+.btn-save { background: #6b7280; }
+.btn-deactivate { background-color: #d97706; }
+.btn-delete { background-color: #dc2626; }
+.badge-admin { background: #fdecea; color: #b91c1c; }
+.badge-manager { background: #fff7db; color: #b45309; }
+.badge-employee { background: #e8f5e9; color: #166534; }
+.badge-active { background: #e8f5e9; color: #166534; }
 
 .success-message {
   color: #166534;
@@ -565,42 +611,15 @@ td {
   outline-offset: 2px;
 }
 
-.btn-save:hover {
-  background: #4b5563;
-}
-
-.btn-deactivate:hover {
-  background: #b45309;
-}
-
-.btn-delete:hover {
-  background: #b91c1c;
-}
+.btn-save:hover { background: #4b5563; }
+.btn-deactivate:hover { background: #b45309; }
+.btn-delete:hover { background: #b91c1c; }
 
 @media (max-width: 768px) {
-  .admin-wrapper {
-    padding: 1rem 0.75rem;
-  }
-
-  .card {
-    padding: 1rem;
-  }
-
-  .action-buttons,
-  .role-change {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-save,
-  .btn-deactivate,
-  .btn-delete {
-    width: 100%;
-  }
-
-  .role-change select {
-    width: 100%;
-    min-width: 0;
-  }
+  .admin-wrapper { padding: 1rem 0.75rem; }
+  .card { padding: 1rem; }
+  .action-buttons, .role-change { flex-direction: column; align-items: stretch; }
+  .btn-save, .btn-deactivate, .btn-delete { width: 100%; }
+  .role-change select { width: 100%; min-width: 0; }
 }
 </style>
