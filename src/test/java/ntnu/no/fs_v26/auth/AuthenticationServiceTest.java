@@ -155,8 +155,7 @@ class AuthenticationServiceTest {
 
         RuntimeException ex = assertThrows(
                 RuntimeException.class,
-                () -> authenticationService.register(request)
-        );
+                () -> authenticationService.register(request));
 
         assertEquals("Organization not found", ex.getMessage());
 
@@ -200,8 +199,8 @@ class AuthenticationServiceTest {
         assertEquals(1L, orgMap.get("id"));
         assertEquals("Everest Sushi", orgMap.get("name"));
 
-        ArgumentCaptor<UsernamePasswordAuthenticationToken> captor =
-                ArgumentCaptor.forClass(UsernamePasswordAuthenticationToken.class);
+        ArgumentCaptor<UsernamePasswordAuthenticationToken> captor = ArgumentCaptor
+                .forClass(UsernamePasswordAuthenticationToken.class);
         verify(authenticationManager).authenticate(captor.capture());
 
         UsernamePasswordAuthenticationToken authToken = captor.getValue();
@@ -226,8 +225,7 @@ class AuthenticationServiceTest {
 
         RuntimeException ex = assertThrows(
                 RuntimeException.class,
-                () -> authenticationService.authenticate(request)
-        );
+                () -> authenticationService.authenticate(request));
 
         assertEquals("User not found", ex.getMessage());
 
