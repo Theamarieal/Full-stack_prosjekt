@@ -1,57 +1,73 @@
-import axios from 'axios';
+import api from '@/api/axios'
 
 /**
- * Pre-configured Axios instance for communicating with the Checkd backend API.
+ * Fetches all users in the current organization.
  *
- * Base URL: http://localhost:8080/api/v1
- *
- * Includes two interceptors:
- * - Request interceptor: attaches the JWT token from sessionStorage as a Bearer token.
- * - Response interceptor: handles 401 Unauthorized responses by clearing session
- *   storage and redirecting the user to the login page.
- *
- * @module axios
+ * @returns {Promise<Array>} A list of user objects.
  */
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api/v1',
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+export async function getUsers() {
+  const response = await api.get('/admin/users')
+  return response.data
+}
 
 /**
- * Request interceptor that attaches the JWT token to every outgoing request.
- * The token is retrieved from sessionStorage under the key 'token'.
+ * Creates a new user in the current organization.
+ *
+ * @param {Object} userData - The user data for the new account.
+ * @param {string} userData.firstName - First name of the user.
+ * @param {string} userData.lastName - Last name of the user.
+ * @param {string} userData.email - Email address of the user.
+ * @param {string} userData.password - Initial password for the user.
+ * @param {string} userData.role - Role assigned to the user (e.g. EMPLOYEE, MANAGER).
+ * @returns {Promise<Object>} The created user object.
  */
-api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+export async function createUser(userData) {
+  const response = await api.post('/admin/users', userData)
+  return response.data
+}
 
 /**
- * Response interceptor for global error handling.
- * If a 401 Unauthorized response is received and a token exists in sessionStorage,
- * the session is cleared and the user is redirected to the login page.
+ * Updates the role of an existing user.
+ *
+ * @param {number} userId - The ID of the user to update.
+ * @param {string} role - The new role to assign (e.g. EMPLOYEE, MANAGER, ADMIN).
+ * @returns {Promise<Object>} The updated user object.
  */
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const token = sessionStorage.getItem('token');
-      if (token) {
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
-        window.location.replace('http://localhost:5173/login');
-        return new Promise(() => {});
-      }
-    }
-    return Promise.reject(error);
-  }
-);
+export async function updateUserRole(userId, role) {
+  const response = await api.patch(`/admin/users/${userId}/role`, { role })
+  return response.data
+}
 
-export default api;
+/**
+ * Toggles the active status of a user account.
+ *
+ * @param {number} userId - The ID of the user to update.
+ * @param {boolean} active - Whether the user account should be active or inactive.
+ * @returns {Promise<Object>} The updated user object.
+ */
+export async function toggleUserActive(userId, active) {
+  const response = await api.patch(`/admin/users/${userId}/active`, { active })
+  return response.data
+}
+
+/**
+ * Deletes a user from the current organization.
+ *
+ * @param {number} userId - The ID of the user to delete.
+ * @returns {Promise<void>}
+ */
+export async function deleteUser(userId) {
+  await api.delete(`/admin/users/${userId}`)
+}
+
+/**
+ * Creates a new organization.
+ *
+ * @param {Object} data - The organization data.
+ * @param {string} data.name - The name of the organization.
+ * @returns {Promise<Object>} The created organization object.
+ */
+export async function createOrganization(data) {
+  const response = await api.post('/admin/organizations', data)
+  return response.data
+}
