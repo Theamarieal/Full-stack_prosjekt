@@ -16,7 +16,7 @@
         role="tab"
         :aria-selected="selectedFrequency === freq"
         :class="['filter-btn', { active: selectedFrequency === freq }]"
-        @click="selectedFrequency = freq"
+        @click="onFrequencyChange(freq)"
       >
         {{ freq }}
       </button>
@@ -24,7 +24,7 @@
 
     <div class="module-filter" role="group" aria-label="Module filter">
       <label for="module-select">Department/Module</label>
-      <select id="module-select" v-model="selectedModule">
+      <select id="module-select" v-model="selectedModule" @change="onModuleChange">
         <option value="ALL">All modules</option>
         <option value="KITCHEN">IK-Mat (Food Safety)</option>
         <option value="BAR">IK-Alkohol (Alcohol)</option>
@@ -37,75 +37,103 @@
       <span aria-hidden="true">⚠ </span>{{ error }}
     </div>
 
-    <div v-else-if="filteredChecklists.length === 0" class="empty" role="status">
+    <div v-else-if="checklists.length === 0" class="empty" role="status">
       <div class="empty-icon" aria-hidden="true">📋</div>
       <p>No checklists found for this category.</p>
     </div>
 
-    <div v-else class="checklists-grid">
-      <section
-        v-for="checklist in filteredChecklists"
-        :key="checklist.id"
-        class="checklist-card"
-        :class="{ 'is-complete': isChecklistDone(checklist) }"
-        :aria-label="`Checklist: ${checklist.title}`"
-      >
-        <div class="card-header">
-          <div class="header-main">
-            <h2>{{ checklist.title }}</h2>
-            <span class="frequency-tag">{{ checklist.frequency }}</span>
+    <div v-else>
+      <div class="checklists-grid">
+        <section
+          v-for="checklist in checklists"
+          :key="checklist.id"
+          class="checklist-card"
+          :class="{ 'is-complete': isChecklistDone(checklist) }"
+          :aria-label="`Checklist: ${checklist.title}`"
+        >
+          <div class="card-header">
+            <div class="header-main">
+              <h2>{{ checklist.title }}</h2>
+              <span class="frequency-tag">{{ checklist.frequency }}</span>
+            </div>
+
+            <div
+              class="status-icon"
+              v-if="isChecklistDone(checklist)"
+              aria-label="Checklist completed"
+              role="img"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
           </div>
 
-          <div
-            class="status-icon"
-            v-if="isChecklistDone(checklist)"
-            aria-label="Checklist completed"
-            role="img"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-          </div>
-        </div>
+          <p v-if="isChecklistDone(checklist)" class="status-text">Completed</p>
 
-        <p v-if="isChecklistDone(checklist)" class="status-text">
-          Completed
-        </p>
+          <ul class="items-list">
+            <li
+              v-for="item in checklist.items"
+              :key="item.id"
+              :class="['checklist-item', { completed: item.completed }]"
+            >
+              <label class="item-label">
+                <input
+                  type="checkbox"
+                  :checked="item.completed"
+                  :disabled="item.completed"
+                  @change="handleComplete(checklist.id, item.id)"
+                />
+                <span class="item-text">{{ item.description }}</span>
+              </label>
+            </li>
+          </ul>
 
-        <ul class="items-list">
-          <li
-            v-for="item in checklist.items"
-            :key="item.id"
-            :class="['checklist-item', { completed: item.completed }]"
-          >
-            <label class="item-label">
-              <input
-                type="checkbox"
-                :checked="item.completed"
-                :disabled="item.completed"
-                @change="handleComplete(checklist.id, item.id)"
-              />
-              <span class="item-text">{{ item.description }}</span>
-            </label>
-          </li>
-        </ul>
+          <p v-if="completeErrors[checklist.id]" class="error-inline" role="alert">
+            <span aria-hidden="true">⚠ </span>{{ completeErrors[checklist.id] }}
+          </p>
+        </section>
+      </div>
 
-        <p v-if="completeErrors[checklist.id]" class="error-inline" role="alert">
-          <span aria-hidden="true">⚠ </span>{{ completeErrors[checklist.id] }}
-        </p>
-      </section>
+      <!-- Pagination -->
+      <nav class="pagination" aria-label="Pagination">
+        <button
+          class="page-btn"
+          @click="goToPage(currentPage - 1)"
+          :disabled="currentPage === 0"
+          aria-label="Previous page"
+        >
+          ← Previous
+        </button>
+
+        <span class="page-info" aria-live="polite">
+          Page {{ currentPage + 1 }} of {{ totalPages }}
+        </span>
+
+        <button
+          class="page-btn"
+          @click="goToPage(currentPage + 1)"
+          :disabled="currentPage + 1 >= totalPages"
+          aria-label="Next page"
+        >
+          Next →
+        </button>
+      </nav>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import checklistApi from '@/api/checklist'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
 const router = useRouter()
 const checklists = ref([])
+const totalPages = ref(1)
+const currentPage = ref(0)
+const pageSize = 6
 const loading = ref(true)
 const error = ref('')
 const completeErrors = ref({})
@@ -113,27 +141,36 @@ const selectedFrequency = ref('ALL')
 const selectedModule = ref('ALL')
 const frequencies = ['ALL', 'DAILY', 'WEEKLY', 'MONTHLY']
 
-const filteredChecklists = computed(() => {
-  return checklists.value.filter((c) => {
-    const freqMatch = selectedFrequency.value === 'ALL' || c.frequency === selectedFrequency.value
-    const moduleMatch = selectedModule.value === 'ALL' || c.module === selectedModule.value
-    return freqMatch && moduleMatch
-  })
-})
-
 function isChecklistDone(checklist) {
   return checklist.items && checklist.items.every(item => item.completed)
 }
 
-async function loadChecklists() {
+function onFrequencyChange(freq) {
+  selectedFrequency.value = freq
+  goToPage(0)
+}
+
+function onModuleChange() {
+  goToPage(0)
+}
+
+async function loadChecklists(page = 0) {
+  loading.value = true
+  error.value = ''
   try {
-    const res = await checklistApi.getAll()
-    checklists.value = Array.isArray(res.data) ? res.data : []
+    const res = await checklistApi.getAll(page, pageSize, selectedModule.value, selectedFrequency.value)
+    checklists.value = res.data.content ?? []
+    totalPages.value = res.data.totalPages ?? 1
+    currentPage.value = res.data.number ?? 0
   } catch (e) {
     error.value = 'Failed to load checklists.'
   } finally {
     loading.value = false
   }
+}
+
+async function goToPage(page) {
+  await loadChecklists(page)
 }
 
 async function handleComplete(checklistId, itemId) {
@@ -152,7 +189,7 @@ function goBack() {
   router.push('/')
 }
 
-onMounted(loadChecklists)
+onMounted(() => loadChecklists(0))
 </script>
 
 <style scoped>
@@ -324,13 +361,8 @@ input:focus-visible {
   font-size: 0.95rem;
 }
 
-.items-list {
-  list-style: none;
-}
-
-.checklist-item {
-  margin-bottom: 4px;
-}
+.items-list { list-style: none; }
+.checklist-item { margin-bottom: 4px; }
 
 .item-label {
   display: flex;
@@ -342,9 +374,7 @@ input:focus-visible {
   transition: background 0.2s;
 }
 
-.item-label:hover {
-  background: #f8fafc;
-}
+.item-label:hover { background: #f8fafc; }
 
 input[type="checkbox"] {
   width: 20px;
@@ -354,16 +384,8 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 
-.item-text {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #2c2c2a;
-}
-
-.completed .item-text {
-  text-decoration: line-through;
-  color: #475569;
-}
+.item-text { font-size: 1rem; font-weight: 500; color: #2c2c2a; }
+.completed .item-text { text-decoration: line-through; color: #475569; }
 
 .error-banner {
   background: #fff5f5;
@@ -375,11 +397,7 @@ input[type="checkbox"] {
   text-align: center;
 }
 
-.error-inline {
-  margin-top: 12px;
-  color: #991b1b;
-  font-weight: 700;
-}
+.error-inline { margin-top: 12px; color: #991b1b; font-weight: 700; }
 
 .empty {
   text-align: center;
@@ -390,34 +408,42 @@ input[type="checkbox"] {
   color: #374151;
 }
 
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
 }
 
+.page-btn {
+  padding: 10px 20px;
+  border: 1.5px solid #e0dfd8;
+  border-radius: 10px;
+  background: white;
+  color: #534AB7;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #534AB7;
+  color: white;
+  border-color: #534AB7;
+}
+
+.page-btn:disabled { color: #c7c7c7; cursor: not-allowed; }
+.page-info { font-weight: 700; color: #3C3489; font-size: 0.95rem; }
+
 @media (max-width: 786px) {
-  .checklist-header {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .back-btn-minimal {
-    width: 100%;
-    text-align: center;
-  }
-
-  .checklists-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .module-filter {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .module-filter select {
-    width: 100%;
-  }
+  .checklist-header { flex-direction: column; gap: 16px; }
+  .back-btn-minimal { width: 100%; text-align: center; }
+  .checklists-grid { grid-template-columns: 1fr; }
+  .module-filter { flex-direction: column; align-items: flex-start; }
+  .module-filter select { width: 100%; }
 }
 </style>
 

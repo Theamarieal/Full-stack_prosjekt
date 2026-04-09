@@ -5,7 +5,7 @@
         <h1>Deviations</h1>
         <p class="subtitle">Monitor and resolve quality gaps</p>
       </div>
-    
+
       <div class="header-actions">
         <button type="button" class="add-btn" @click="router.push('/deviations/new')">
           <span class="plus-icon" aria-hidden="true">+</span> Report deviation
@@ -45,61 +45,88 @@
       <span aria-hidden="true">⚠ </span>{{ error }}
     </div>
 
-    <div v-else-if="filtered.length === 0" class="empty-state" role="status">
+    <div v-else-if="filteredDeviations.length === 0" class="empty-state" role="status">
       <div class="empty-icon" aria-hidden="true">🫸🫷</div>
       <p>No deviations found. Everything is looking good!</p>
     </div>
 
-    <div v-else class="deviation-cards">
-      <section
-        v-for="deviation in filtered"
-        :key="deviation.id"
-        class="deviation-card"
-        :class="statusClass(deviation.status)"
-        :aria-label="`Deviation: ${deviation.title}`"
-      >
-        <div class="card-top">
-          <div class="card-title-area">
-            <span class="module-pill">{{ formatModule(deviation.module) }}</span>
-            <h3>{{ deviation.title }}</h3>
+    <div v-else>
+      <div class="deviation-cards">
+        <section
+          v-for="deviation in filteredDeviations"
+          :key="deviation.id"
+          class="deviation-card"
+          :class="statusClass(deviation.status)"
+          :aria-label="`Deviation: ${deviation.title}`"
+        >
+          <div class="card-top">
+            <div class="card-title-area">
+              <span class="module-pill">{{ formatModule(deviation.module) }}</span>
+              <h3>{{ deviation.title }}</h3>
+            </div>
+            <span class="status-badge" :class="statusClass(deviation.status)">
+              {{ formatStatus(deviation.status) }}
+            </span>
           </div>
-          <span class="status-badge" :class="statusClass(deviation.status)">
-            {{ formatStatus(deviation.status) }}
-          </span>
-        </div>
 
-        <p v-if="deviation.description" class="description">{{ deviation.description }}</p>
+          <p v-if="deviation.description" class="description">{{ deviation.description }}</p>
 
-        <div class="card-meta">
-          <div class="meta-item">
-            <span class="meta-label">Reported:</span>
-            <span>{{ formatDate(deviation.createdAt) }}</span>
+          <div class="card-meta">
+            <div class="meta-item">
+              <span class="meta-label">Reported:</span>
+              <span>{{ formatDate(deviation.createdAt) }}</span>
+            </div>
+            <div class="meta-item" v-if="deviation.reportedBy">
+              <span class="meta-label">By:</span>
+              <span>{{ deviation.reportedBy.email.split('@')[0] }}</span>
+            </div>
           </div>
-          <div class="meta-item" v-if="deviation.reportedBy">
-            <span class="meta-label">By:</span>
-            <span>{{ deviation.reportedBy.email.split('@')[0] }}</span>
-          </div>
-        </div>
 
-        <div v-if="isManagerOrAdmin" class="manager-actions">
-          <div v-if="updateError === deviation.id" class="error-inline" role="alert">
-            <span aria-hidden="true">⚠ </span>Failed to update status.
+          <div v-if="isManagerOrAdmin" class="manager-actions">
+            <div v-if="updateError === deviation.id" class="error-inline" role="alert">
+              <span aria-hidden="true">⚠ </span>Failed to update status.
+            </div>
+            <div class="update-controls">
+              <label :for="`status-update-${deviation.id}`">Update status:</label>
+              <select
+                :id="`status-update-${deviation.id}`"
+                :value="deviation.status"
+                @change="updateStatus(deviation.id, $event.target.value)"
+                class="status-select-small"
+              >
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+            </div>
           </div>
-          <div class="update-controls">
-            <label :for="`status-update-${deviation.id}`">Update status:</label>
-            <select
-              :id="`status-update-${deviation.id}`"
-              :value="deviation.status"
-              @change="updateStatus(deviation.id, $event.target.value)"
-              class="status-select-small"
-            >
-              <option value="OPEN">Open</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="RESOLVED">Resolved</option>
-            </select>
-          </div>
-        </div>
-      </section>
+        </section>
+      </div>
+
+      <!-- Pagination -->
+      <nav class="pagination" aria-label="Pagination">
+        <button
+          class="page-btn"
+          @click="goToPage(currentPage - 1)"
+          :disabled="currentPage === 0"
+          aria-label="Previous page"
+        >
+          ← Previous
+        </button>
+
+        <span class="page-info" aria-live="polite">
+          Page {{ currentPage + 1 }} of {{ totalPages }}
+        </span>
+
+        <button
+          class="page-btn"
+          @click="goToPage(currentPage + 1)"
+          :disabled="currentPage + 1 >= totalPages"
+          aria-label="Next page"
+        >
+          Next →
+        </button>
+      </nav>
     </div>
   </div>
 </template>
@@ -116,6 +143,9 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const deviations = ref([])
+const totalPages = ref(1)
+const currentPage = ref(0)
+const pageSize = 5
 const loading = ref(true)
 const error = ref('')
 const updateError = ref(null)
@@ -127,7 +157,7 @@ const isManagerOrAdmin = computed(() => {
   return role === 'MANAGER' || role === 'ADMIN'
 })
 
-const filtered = computed(() => {
+const filteredDeviations = computed(() => {
   return deviations.value.filter((d) => {
     const matchStatus = filterStatus.value ? d.status === filterStatus.value : true
     const matchModule = filterModule.value ? d.module === filterModule.value : true
@@ -139,17 +169,30 @@ watch(() => route.query.module, (val) => {
   filterModule.value = val || ''
 })
 
-onMounted(async () => {
+// legg til denne:
+watch([filterStatus, filterModule], () => {
+  loadDeviations(0)
+})
+
+async function loadDeviations(page = 0) {
+  loading.value = true
+  error.value = ''
   try {
-    const res = await deviationApi.getAll()
-    deviations.value = Array.isArray(res.data) ? res.data : []
+    const res = await deviationApi.getAll(page, pageSize)
+    deviations.value = res.data.content ?? []
+    totalPages.value = res.data.totalPages ?? 1
+    currentPage.value = res.data.number ?? 0
   } catch (e) {
     error.value = 'Failed to load deviations.'
     console.error(e)
   } finally {
     loading.value = false
   }
-})
+}
+
+async function goToPage(page) {
+  await loadDeviations(page)
+}
 
 async function updateStatus(id, newStatus) {
   updateError.value = null
@@ -191,6 +234,8 @@ function formatDate(dateStr) {
     day: 'numeric',
   })
 }
+
+onMounted(() => loadDeviations(0))
 </script>
 
 <style scoped>
@@ -245,9 +290,7 @@ function formatDate(dateStr) {
   cursor: pointer;
 }
 
-.back-btn-minimal:hover {
-  background: #fafaf8;
-}
+.back-btn-minimal:hover { background: #fafaf8; }
 
 button:focus-visible,
 select:focus-visible {
@@ -298,17 +341,9 @@ select {
   box-shadow: 0 4px 12px rgba(60, 52, 137, 0.04);
 }
 
-.deviation-card.status-open {
-  border-left-color: #ef4444;
-}
-
-.deviation-card.status-in-progress {
-  border-left-color: #f59e0b;
-}
-
-.deviation-card.status-resolved {
-  border-left-color: #10b981;
-}
+.deviation-card.status-open { border-left-color: #ef4444; }
+.deviation-card.status-in-progress { border-left-color: #f59e0b; }
+.deviation-card.status-resolved { border-left-color: #10b981; }
 
 .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 
@@ -350,23 +385,9 @@ select {
   border: 1px solid transparent;
 }
 
-.status-badge.status-open {
-  background: #fff1f2;
-  color: #991b1b;
-  border-color: #fecdd3;
-}
-
-.status-badge.status-in-progress {
-  background: #fffbeb;
-  color: #92400e;
-  border-color: #fde68a;
-}
-
-.status-badge.status-resolved {
-  background: #f0fdf4;
-  color: #166534;
-  border-color: #bbf7d0;
-}
+.status-badge.status-open { background: #fff1f2; color: #991b1b; border-color: #fecdd3; }
+.status-badge.status-in-progress { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.status-badge.status-resolved { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
 
 .description { color: #374151; margin-bottom: 16px; line-height: 1.5; }
 .card-meta { display: flex; gap: 20px; font-size: 0.9rem; color: #4b5563; }
@@ -398,11 +419,47 @@ select {
 }
 .empty-icon { font-size: 3rem; margin-bottom: 12px; }
 
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.page-btn {
+  padding: 10px 20px;
+  border: 1.5px solid #e0dfd8;
+  border-radius: 10px;
+  background: white;
+  color: #534AB7;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #534AB7;
+  color: white;
+  border-color: #534AB7;
+}
+
+.page-btn:disabled {
+  color: #c7c7c7;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-weight: 700;
+  color: #3C3489;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 786px) {
-  .page-header-section { flex-direction: column; gap: 16px; align-items: stretch;}
-  .header-actions {flex-direction: column; width: 100%;}
+  .page-header-section { flex-direction: column; gap: 16px; align-items: stretch; }
+  .header-actions { flex-direction: column; width: 100%; }
   .add-btn { width: 100%; justify-content: center; }
   .card-top { flex-direction: column; gap: 12px; }
-  .back-btn-minimal {width: 100%; justify-content: center; text-align: center;}
+  .back-btn-minimal { width: 100%; justify-content: center; text-align: center; }
 }
 </style>
