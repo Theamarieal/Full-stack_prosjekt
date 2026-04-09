@@ -12,6 +12,15 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * REST controller for equipment management.
+ *
+ * <p>Provides endpoints for retrieving equipment registered for an organization.
+ * Equipment is used in the IK-Mat module to associate temperature logs
+ * with specific units such as refrigerators and freezers.
+ *
+ * <p>Base path: {@code /api/v1/equipment}
+ */
 @RestController
 @RequestMapping("/api/v1/equipment")
 @RequiredArgsConstructor
@@ -20,6 +29,12 @@ public class EquipmentController {
 
     private final EquipmentService equipmentService;
 
+    /**
+     * Returns all equipment registered for the authenticated user's organization.
+     *
+     * @param user the authenticated user
+     * @return a list of {@link EquipmentResponse} objects including acceptable temperature ranges
+     */
     @GetMapping
     @Operation(summary = "Get all equipment for the logged-in user's organization")
     public ResponseEntity<List<EquipmentResponse>> getAllEquipment(@AuthenticationPrincipal User user) {
