@@ -319,3 +319,10 @@ Styling is scoped per component rather than using separate global stylesheets. T
 <br>
 
 We chose to prioritize OWASP security measures, input validation, test coverage, and a working end-to-end experience over adding more features that would not be fully implemented.
+
+---
+
+## Documentation
+
+PDF documents have been included to provide an overview of the Javadoc and JSDoc. The complete Javadoc is available here:
+[Javadoc Dokumentasjon](https://theamarieal.github.io/Full-stack_prosjekt/)
