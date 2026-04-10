@@ -327,3 +327,5 @@ We chose to prioritize OWASP security measures, input validation, test coverage,
 PDF documents have been included to provide an overview of the Javadoc and JSDoc. The complete Javadoc is available here:
 
 [Javadoc Documentation](https://theamarieal.github.io/Full-stack_prosjekt/)
+<br><br>
+The JSDoc documentation is also available in the /docs directory as HTML files. As only one documentation link could be provided, we prioritized linking to the Javadoc.
