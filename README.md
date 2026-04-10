@@ -13,8 +13,8 @@ This project was developed as a semester assignment for IDATT2105 Full-stack App
 | Name | Student ID |
 |------|------------|
 | Ida Aspenes-Isaksen | 137433 |
-| Regine Hjelmtveit | XXXXXX |
-| Thea Marie Alver Lønvik | XXXXXX |
+| Regine Hjelmtveit | 560578 |
+| Thea Marie Alver Lønvik | 542330 |
 
 
 ## Table of contents
