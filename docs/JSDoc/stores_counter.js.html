@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: stores/counter.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: stores/counter.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { defineStore } from 'pinia'
+import api from '@/api/axios'
+
+/**
+ * Pinia store for authentication state.
+ *
+ * Manages the current user's session, including JWT token storage,
+ * login, registration, and logout. Session data is persisted in sessionStorage
+ * so that it survives page refreshes but is cleared when the browser tab is closed.
+ *
+ * @store auth
+ */
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    /** @type {string|null} The JWT token for the current session. */
+    token: sessionStorage.getItem('token') || null,
+
+    /** @type {Object|null} The authenticated user object, including role and identity. */
+    user: JSON.parse(sessionStorage.getItem('user')) || null,
+  }),
+
+  getters: {
+    /**
+     * Whether a user is currently logged in.
+     *
+     * @param {Object} state
+     * @returns {boolean}
+     */
+    isLoggedIn: (state) => !!state.token,
+
+    /**
+     * The role of the currently authenticated user, or null if not logged in.
+     *
+     * @param {Object} state
+     * @returns {string|null} Role string (e.g. 'EMPLOYEE', 'MANAGER', 'ADMIN').
+     */
+    getUserRole: (state) => state.user?.role || null,
+  },
+
+  actions: {
+    /**
+     * Authenticates a user with the given credentials.
+     * On success, stores the JWT token and user object in state and sessionStorage.
+     *
+     * @param {string} email - The user's email address.
+     * @param {string} password - The user's password.
+     * @returns {Promise&lt;boolean>} True if login succeeded, false otherwise.
+     */
+    async login(email, password) {
+      try {
+        const response = await api.post('/auth/login', { email, password })
+
+        this.token = response.data.token
+        this.user = response.data.user
+
+        sessionStorage.setItem('token', this.token)
+        sessionStorage.setItem('user', JSON.stringify(this.user))
+
+        return true
+      } catch (error) {
+        console.error('Login failed:', error.response?.data || error.message)
+        return false
+      }
+    },
+
+    /**
+     * Registers a new user account.
+     * On success, stores the JWT token and user object in state and sessionStorage.
+     *
+     * @param {string} email - The email address for the new account.
+     * @param {string} password - The password for the new account.
+     * @param {string} role - The role to assign (e.g. 'EMPLOYEE', 'MANAGER').
+     * @param {number} [organizationId=1] - The ID of the organization to register under.
+     * @returns {Promise&lt;Object>} Result object with a success boolean and an optional message on failure.
+     */
+    async register(email, password, role, organizationId = 1) {
+      try {
+        const response = await api.post('/auth/register', {
+          email,
+          password,
+          role,
+          organizationId,
+        })
+
+        this.token = response.data.token
+        this.user = response.data.user
+
+        sessionStorage.setItem('token', this.token)
+        sessionStorage.setItem('user', JSON.stringify(this.user))
+
+        return { success: true }
+      } catch (error) {
+        console.error('Registration failed:', error.response?.data || error.message)
+
+        const message =
+          error.response?.data?.message || error.response?.data || 'Registration failed.'
+
+        return { success: false, message }
+      }
+    },
+
+    /**
+     * Logs out the current user by clearing state and sessionStorage.
+     */
+    logout() {
+      this.token = null
+      this.user = null
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('user')
+    },
+  },
+})
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-alcoholApi.html">alcoholApi</a></li><li><a href="module-axios.html">axios</a></li><li><a href="module-checklistApi.html">checklistApi</a></li><li><a href="module-deviationApi.html">deviationApi</a></li><li><a href="module-equipmentApi.html">equipmentApi</a></li><li><a href="module-router.html">router</a></li><li><a href="module-temperatureApi.html">temperatureApi</a></li><li><a href="module-trainingApi.html">trainingApi</a></li></ul><h3>Global</h3><ul><li><a href="global.html#createOrganization">createOrganization</a></li><li><a href="global.html#createUser">createUser</a></li><li><a href="global.html#deleteUser">deleteUser</a></li><li><a href="global.html#fetchReport">fetchReport</a></li><li><a href="global.html#getUsers">getUsers</a></li><li><a href="global.html#toggleUserActive">toggleUserActive</a></li><li><a href="global.html#token">token</a></li><li><a href="global.html#updateUserRole">updateUserRole</a></li><li><a href="global.html#useAuthStore">useAuthStore</a></li><li><a href="global.html#user">user</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Fri Apr 10 2026 10:35:10 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
