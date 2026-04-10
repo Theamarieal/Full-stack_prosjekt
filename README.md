@@ -325,4 +325,4 @@ We chose to prioritize OWASP security measures, input validation, test coverage,
 ## Documentation
 
 PDF documents have been included to provide an overview of the Javadoc and JSDoc. The complete Javadoc is available here:
-[Javadoc Dokumentasjon](https://theamarieal.github.io/Full-stack_prosjekt/)
+[Javadoc Dokumentation](https://theamarieal.github.io/Full-stack_prosjekt/)
