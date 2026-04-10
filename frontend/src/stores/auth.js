@@ -11,9 +11,6 @@ import api from '@/api/axios'
  * @store auth
  */
 export const useAuthStore = defineStore('auth', {
-  /**
-   * @returns {{ token: string|null, user: Object|null }}
-   */
   state: () => ({
     /** @type {string|null} The JWT token for the current session. */
     token: sessionStorage.getItem('token') || null,
@@ -74,7 +71,7 @@ export const useAuthStore = defineStore('auth', {
      * @param {string} password - The password for the new account.
      * @param {string} role - The role to assign (e.g. 'EMPLOYEE', 'MANAGER').
      * @param {number} [organizationId=1] - The ID of the organization to register under.
-     * @returns {Promise<{ success: boolean, message?: string }>} Result object indicating success or failure.
+     * @returns {Promise<Object>} Result object with a success boolean and an optional message on failure.
      */
     async register(email, password, role, organizationId = 1) {
       try {
@@ -98,10 +95,7 @@ export const useAuthStore = defineStore('auth', {
         const message =
           error.response?.data?.message || error.response?.data || 'Registration failed.'
 
-        return {
-          success: false,
-          message,
-        }
+        return { success: false, message }
       }
     },
 

@@ -32,19 +32,13 @@ const router = createRouter({
       path: '/temperature',
       name: 'temperature',
       component: TemperatureView,
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/temperature-history',
       name: 'temperature-history',
       component: TemperatureHistoryView,
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/login',
@@ -60,81 +54,55 @@ const router = createRouter({
       path: '/reports',
       name: 'reports',
       component: () => import('@/views/ReportView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['MANAGER', 'ADMIN'] },
     },
     {
       path: '/',
       name: 'dashboard',
       component: () => import('@/views/DashboardView.vue'),
-      meta: {
-        requiresAuth: true,
-      },
+      meta: { requiresAuth: true },
     },
     {
       path: '/training',
       name: 'training',
       component: () => import('@/views/TrainingView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/checklists',
       name: 'checklists',
       component: () => import('@/views/ChecklistView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/alcohol',
       name: 'alcohol',
       component: () => import('@/views/AlcoholView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/deviations',
       name: 'deviations',
       component: () => import('@/views/DeviationListView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/deviations/new',
       name: 'deviation-new',
       component: () => import('@/views/DeviationNewView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['EMPLOYEE', 'MANAGER', 'ADMIN'] },
     },
     {
       path: '/manage-checklists',
       name: 'manage-checklists',
       component: () => import('@/views/ManageChecklistsView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['MANAGER', 'ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['MANAGER', 'ADMIN'] },
     },
     {
       path: '/admin',
       name: 'admin',
       component: () => import('@/views/AdminView.vue'),
-      meta: {
-        requiresAuth: true,
-        roles: ['ADMIN'],
-      },
+      meta: { requiresAuth: true, roles: ['ADMIN'] },
     },
     {
       path: '/dashboard',
@@ -151,8 +119,8 @@ const router = createRouter({
  * - Authenticated users attempting to access /login or /register are redirected to the dashboard.
  * - Authenticated users without the required role for a route are redirected to the dashboard.
  *
- * @param {import('vue-router').RouteLocationNormalized} to - The target route.
- * @param {import('vue-router').RouteLocationNormalized} from - The current route.
+ * @param {Object} to - The target route.
+ * @param {Object} from - The current route.
  * @param {Function} next - Function to resolve the navigation.
  */
 router.beforeEach((to, from, next) => {
